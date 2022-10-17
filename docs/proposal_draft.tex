@@ -1,0 +1,134 @@
+\documentclass{article}
+
+\usepackage{hyperref}
+
+\author{Ethan Hawk}
+\title{FUSTAL - \textbf{FU}thark \textbf{STA}tistical \textbf{L}ibrary}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+\newpage
+\section{Description}
+
+FUSTAL aims to be a general purpose library for statistical computation.
+This will include subroutines for many different types of statistical test,
+and hopefully will include code to run different types of machine learning
+models.
+
+FUSTAL will be written in \href{https://futhark-lang.org/}{futhark}, a
+functional programming language, which compiles down to CUDA and OpenCL.
+
+FUSTAL as a library will also be able to be used from a variety of different
+programming environments, including C and Python, due to the nature of the
+futhark compiler.
+
+\section{Why}
+
+This project was chosen for a number of reasons. The first of which is that
+futhark, the implementation language, is impressive in many regards. Not the
+least of which is its performance. Futhark is able to compile to code that runs
+on the GPU, which can often give code a very significant speed increase.
+
+An additional benefit to using futhark for this task, as opposed to C, is that 
+since futhark is a high-level functional programming language, there is little
+to no reliance on the underling machine architecture. There is no need to worry
+about architecture specific performance increases, as those are often just
+incorporated into the futhark compiler itself.
+
+\section{Background}
+
+Based off of the publications section of the futhark website,
+\href{https://futhark-lang.org/publications.html}{here}, there doesn't
+appear to be any work currently done in the realm of general statistics in
+this language at the time of writing. However, there is a paper that details
+the use of the language to help analyze time series data, so there is some
+attention in this subject area.
+
+\section{Goals}
+
+The primary goal for this project is to produce a statistics library that
+could be used in real world scenarios. Being able to run multiple different
+statistical tests on a dataset, along with more basic summary statistics.
+
+One of the big ``reach'' goals would be to have this library be capable of
+running machine learning algorithms. Implementing the core subroutines for
+a neural network is a goal of the project.
+
+\section{Customers/Mentors}
+
+Deciding who is the customer for this particular project is somewhat challenging.
+Since the code will be open source, theoretically anyone can be a customer.
+I would say that the ideal customer is someone who wants a library that they
+can use to speed up their internal statistical processes, and has the requisite
+technological background to be able to integrate this library into said process.
+
+As for mentors, I plan to have some friends, both in and out of college help
+with the development of the project. Obviously not as the main development lead,
+but more so as an extra set of eyes to make sure that the project is going into
+a fruitful direction.
+
+\section{Data Needed}
+
+For this project, the data that is needed is testing data. This is to ensure
+that the library is able to reproduce results seen in other statistics
+libraries and software, such as R. Some example testing datasets that I am
+considering are the ``built-in'' datasets in R. The primary reason for their
+consideration is ease of access, as well as being the closest datasets that
+could even be called a ``known'' quantity.
+
+\section{Data Science/Statistical Techniques}
+
+Various Data Science and Statistical Techniques will need to be understood,
+and implemented in this project.
+
+Including, but not limited to the following list:
+
+\begin{itemize}
+\item t-test
+\item chi-square test
+\item Mann-Whitney U test
+\item Wilcoxon rank sum test
+\item Pearson correlation coefficient
+\item ANOVA test
+\item Linear Regression
+\end{itemize}
+
+This is of course in conjunction with methods to calculate all other manner
+of statistical values from the dataset as well, since those procedures
+need to be implemented anyways to be able to run any of the tests.
+
+\section{Timeline}
+
+Assuming that I do not start work this semester, which is unlikely, the rough time table would be as follows:
+
+\begin{center}
+\begin{tabular}{p{.2\linewidth}|p{.6\linewidth}}
+Week Number & Goal\\
+\hline
+3 & Have basic statistical procedures done and a testing framework ready for use\\
+7 & Sanity check statistical procedures and aim to have all tests done. Prepare for work on Neural Networks\\
+9 & Aim to have neural network code done and test cases written.\\
+14 & Finish Poster \& Paper\\
+\end{tabular}
+\end{center}
+
+\section{How to share Results?}
+
+Once the project is completed, and the library is statistically sound, results
+will be announced to the developers of futhark, so that there can be an inclusion
+on their website. This will likely be through their IRC channel, where I will
+take questions and further suggestions on how to improve the library. Hopefully
+by this point there will be some benchmarks comparing FUSTAL to other similar
+libraries and software suites.
+
+\section{Ethical Issues?}
+
+The overarching ethical issue for this project is the accuracy of results.
+Care needs to be taken to ensure that the results are correct and reproducible.
+This is why it is important to use datasets in testing that are well understood,
+so that any errors that arise can be dealt with earlier, and avoids the
+reporting of wrong results.
+
+\end{document}
