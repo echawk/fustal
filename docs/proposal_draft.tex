@@ -31,7 +31,7 @@ futhark, the implementation language, is impressive in many regards. Not the
 least of which is its performance. Futhark is able to compile to code that runs
 on the GPU, which can often give code a very significant speed increase.
 
-An additional benefit to using futhark for this task, as opposed to C, is that 
+An additional benefit to using futhark for this task, as opposed to C, is that
 since futhark is a high-level functional programming language, there is little
 to no reliance on the underling machine architecture. There is no need to worry
 about architecture specific performance increases, as those are often just
@@ -40,11 +40,16 @@ incorporated into the futhark compiler itself.
 \section{Background}
 
 Based off of the publications section of the futhark website,
-\href{https://futhark-lang.org/publications.html}{here}, there doesn't
-appear to be any work currently done in the realm of general statistics in
+\href{https://futhark-lang.org/publications.html}{https://futhark-lang.org/publications.html},
+there doesn't appear to be any work currently done in the realm of general statistics in
 this language at the time of writing. However, there is a paper that details
 the use of the language to help analyze time series data, so there is some
 attention in this subject area.
+
+Presently, the only statistics library that has been written in
+futhark is \href{https://github.com/diku-dk/statistics}{https://github.com/diku-dk/statistics},
+which has not been updated in 2 years, so it has seemingly been
+abandoned.
 
 \section{Goals}
 
@@ -68,6 +73,9 @@ As for mentors, I plan to have some friends, both in and out of college help
 with the development of the project. Obviously not as the main development lead,
 but more so as an extra set of eyes to make sure that the project is going into
 a fruitful direction.
+
+As for faculty mentors, Prof. Nick Rosasco has agreed to be my mentor for this
+project, and we will meet regularly to discuss the state of the project.
 
 \section{Data Needed}
 
@@ -114,6 +122,9 @@ Week Number & Goal\\
 \end{tabular}
 \end{center}
 
+Note that this timeline is very subject to change, and the week numbers
+can be flexible, hence the rather big gaps between the milestones.
+
 \section{How to share Results?}
 
 Once the project is completed, and the library is statistically sound, results
@@ -130,5 +141,14 @@ Care needs to be taken to ensure that the results are correct and reproducible.
 This is why it is important to use datasets in testing that are well understood,
 so that any errors that arise can be dealt with earlier, and avoids the
 reporting of wrong results.
+
+\section{References}
+
+\begin{itemize}
+  \item \href{https://futhark-lang.org/}{https://futhark-lang.org/}
+  \item \href{https://www.r-project.org/}{https://www.r-project.org/}
+  \item \href{https://github.com/diku-dk/statistics}{https://github.com/diku-dk/statistics}
+\end{itemize}
+
 
 \end{document}
