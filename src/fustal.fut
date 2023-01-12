@@ -7,11 +7,19 @@
 -- mode, mutlimode
 -- quantiles
 
-entry sum (xs: []f64) : f64 =
-  reduce (+) 0 xs
+-- FIXME: Make these functions not depend on floating point values -- have them be defined for all types.
 
 entry mean (xs: []f64) : f64 =
-  (sum xs) / f64.i64 (length xs)
+  (f64.sum xs) / f64.i64 (length xs)
+
+entry sq (x: f64) : f64 =
+  x * x
+                               
+entry variance (xs: []f64) : f64 =
+  mean (map (\x -> (f64.abs (sq (x - (mean xs))))) xs)
+                
+entry stddev (xs: []f64) : f64 =
+  f64.sqrt (variance xs)
 
 --def median (xs: []f64)
 --def mode (xs: []f64)
