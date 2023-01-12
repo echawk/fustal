@@ -14,14 +14,31 @@ entry mean (xs: []f64) : f64 =
 
 entry sq (x: f64) : f64 =
   x * x
-                               
-entry variance (xs: []f64) : f64 =
+
+entry var (xs: []f64) : f64 =
   mean (map (\x -> (f64.abs (sq (x - (mean xs))))) xs)
-                
-entry stddev (xs: []f64) : f64 =
-  f64.sqrt (variance xs)
+
+entry std (xs: []f64) : f64 =
+  f64.sqrt (var xs)
+
+-- FIXME: doesn't seem to be correct.
+entry sample_std (xs: []f64) : f64 =
+  f64.sqrt (f64.sum (map (\x -> (f64.abs (sq (x - (mean xs))))) xs))
+
+-- https://en.wikipedia.org/wiki/Standard_error
+entry stderr (xs: []f64) : f64 =
+  let sd = std xs in
+  let denom = f64.sqrt (f64.i64 (length xs)) in
+  sd / denom
+
+
+-- FIXME: seems to be slightly off (when compared to R on the iris SepalLength data)
+entry one_sample_t_test(xs: []f64) (mu: f64) : f64 =
+  let xbar = mean xs in
+  let sd = std xs in
+  let n = (f64.i64 (length xs)) in
+  (xbar - mu) / (sd / f64.sqrt n)
+
 
 --def median (xs: []f64)
 --def mode (xs: []f64)
-                                                              
---entry main = average [1.2, 2.3, 3.4, 4.5, 5.6, 6.7]
