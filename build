@@ -1,0 +1,24 @@
+#!/bin/sh -x
+
+# Check environment for needed software.
+
+# https://github.com/diku-dk/futhark
+if ! command -v futhark; then
+	echo "[ERR]: 'futhark' is not available on this system."
+	echo "-----: Can fix by installing futhark."
+fi
+
+# https://github.com/pepijndevos/futhark-pycffi/
+if ! command -v build_futhark_ffi; then
+	echo "[ERR]: 'build_futhark_ffi' is not available on this system."
+	echo "-----: CMD: 'pip install futhark-ffi'"
+fi
+
+
+# TODO: add cleaning step
+[ -d output ] && rm -rf output
+mkdir output
+cp src/* output
+cd output
+futhark c --library fustal.fut
+build_futhark_ffi fustal
