@@ -4,21 +4,22 @@
 
 # https://github.com/diku-dk/futhark
 if ! command -v futhark; then
-	echo "[ERR]: 'futhark' is not available on this system."
-	echo "-----: Can fix by installing futhark."
+    echo "[ERR]: 'futhark' is not available on this system."
+    echo "-----: Can fix by installing futhark."
 fi
 
 # https://github.com/pepijndevos/futhark-pycffi/
 if ! command -v build_futhark_ffi; then
-	echo "[ERR]: 'build_futhark_ffi' is not available on this system."
-	echo "-----: CMD: 'pip install futhark-ffi'"
+    echo "[ERR]: 'build_futhark_ffi' is not available on this system."
+    echo "-----: CMD: 'pip install futhark-ffi'"
 fi
 
+FUTHARK_TARGET="${FUTHARK_TARGET:-c}"
 
 # TODO: add cleaning step
 [ -d output ] && rm -rf output
 mkdir output
 cp src/* output
 cd output
-futhark c --library fustal.fut
+futhark "$FUTHARK_TARGET" --library fustal.fut
 build_futhark_ffi fustal
