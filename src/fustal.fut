@@ -1,3 +1,20 @@
+-- https://en.wikipedia.org/wiki/Pooled_variance
+-- https://en.wikipedia.org/wiki/Degrees_of_freedom_(statistics)
+-- https://www.indeed.com/career-advice/career-development/how-to-calculate-iqr
+-- https://futhark-lang.org/blog/2020-05-03-higher-order-parallel-programming.html
+-- https://en.wikipedia.org/wiki/Bias_of_an_estimator
+-- https://en.wikipedia.org/wiki/Sample_mean_and_covariance
+-- https://github.com/haskell/statistics
+-- https://www.indeed.com/career-advice/career-development/calculate-t-score
+-- https://www.indeed.com/career-advice/career-development/how-to-calculate-covariance
+-- https://en.wikipedia.org/wiki/Covariance
+-- https://github.com/diku-dk/sorts
+-- https://www.programiz.com/r/dataset
+-- https://github.com/diku-dk/statistics/blob/master/lib/github.com/diku-dk/statistics/statistics.fut
+-- https://github.com/fzzle/futhark-svm
+-- https://futhark-lang.org/student-projects/emil-msc-thesis.pdf
+-- https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+-- https://www.geeksforgeeks.org/covariance-and-correlation-in-r-programming/
 
 -- Reference: https://docs.python.org/3/library/statistics.html
 
