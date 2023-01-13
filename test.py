@@ -8,24 +8,16 @@ fustal = Futhark(_fustal)
 
 data = np.array([20000.0,18000.0,20400.0,21050.0,23000.0,22300.0])
 
-res = fustal.mean(data)
-print("Mean---")
-print("Fustal: ", res)
-print("Numpy: ", np.mean(data))
+print("numpy---")
+for func in [np.mean, np.var, np.std]:
+    print(f"{func.__name__}: ", func(data))
 
-res = fustal.var(data)
-print("Variance---")
-print("Fustal: ", res)
-print("Numpy: ", np.var(data))
+print("fustal---")
+for func in [fustal.mean, fustal.var, fustal.std]:
+    print(f"{func.__name__}: ", func(data))
 
-res = fustal.std(data)
-print("Stddev---")
-print("Fustal: ", res)
-print("Numpy: ", np.std(data))
-
-res = fustal.stderr(data)
 print("Stderr---")
-print("Fustal: ", res)
+print("Fustal: ", fustal.stderr(data))
 print("Numpy: ", np.std(data) / np.sqrt(np.size(data)))
 
 # data("iris"); print(iris$Sepal.Length)
