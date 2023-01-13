@@ -16,6 +16,15 @@ fi
 
 FUTHARK_TARGET="${FUTHARK_TARGET:-c}"
 
+case $FUTHARK_TARGET in
+    cuda)
+        for l in cuda cudart; do
+            export CFLAGS="$CFLAGS $(pkg-config --cflags cuda)"
+            export CFLAGS="$CFLAGS $(pkg-config --libs cuda)"
+        done
+    ;;
+esac
+
 # TODO: add cleaning step
 [ -d output ] && rm -rf output
 mkdir output
