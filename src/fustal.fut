@@ -16,14 +16,16 @@ entry sq (x: f64) : f64 =
   x * x
 
 entry var (xs: []f64) : f64 =
-  mean (map (\x -> (f64.abs (sq (x - (mean xs))))) xs)
+  let xbar = mean xs in
+  mean (map (\x -> (sq (x - xbar))) xs)
 
 entry std (xs: []f64) : f64 =
   f64.sqrt (var xs)
 
 -- FIXME: doesn't seem to be correct.
 entry sample_std (xs: []f64) : f64 =
-  f64.sqrt (f64.sum (map (\x -> (f64.abs (sq (x - (mean xs))))) xs))
+  let xbar = mean xs in
+  f64.sqrt (f64.sum (map (\x -> (f64.abs (sq (x - xbar)))) xs))
 
 -- https://en.wikipedia.org/wiki/Standard_error
 entry stderr (xs: []f64) : f64 =
