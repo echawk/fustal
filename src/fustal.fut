@@ -33,8 +33,8 @@ entry sq (x: f64) : f64 =
   x * x
 
 entry var (xs: []f64) : f64 =
-  let xbar = mean xs in
-  mean (map (\x -> (sq (x - xbar))) xs)
+  let mu = mean xs in
+  mean (map (\x -> (sq (x - mu))) xs)
 
 entry std (xs: []f64) : f64 =
   f64.sqrt (var xs)
