@@ -51,11 +51,13 @@ entry var (xs: []f64) : f64 =
 entry std (xs: []f64) : f64 =
   f64.sqrt (var xs)
 
--- FIXME: doesn't seem to be correct.
--- link: https://en.wikipedia.org/wiki/Standard_deviation#Estimation
+-- desc:
+-- equation: $\sqrt{\frac{1}{n - 1} \sum_{i=1}^{n}(x_i - \bar{x})^2}$
+-- link: https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation
 entry sample_std (xs: []f64) : f64 =
   let xbar = mean xs in
-  f64.sqrt (f64.sum (map (\x -> (f64.abs (sq (x - xbar)))) xs))
+  let n = f64.i64 (length xs) in
+  f64.sqrt ((f64.sum (map (\x -> (sq (x - xbar))) xs)) / (n - 1))
 
 -- desc:
 -- equation: $\sigma_{\bar{x}} = \frac{\sigma}{\sqrt{n}}$
