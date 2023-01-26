@@ -28,3 +28,5 @@ print("Fustal: ", fustal.one_sample_t_test(sepal_length, 6))
 
 print("Covariance---")
 print("Fustal: ", fustal.cov(sepal_length, sepal_width))
+
+assert fustal.cov(sepal_length, sepal_length) == fustal.var(sepal_length)
