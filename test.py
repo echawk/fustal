@@ -36,3 +36,4 @@ assert fustal.cov(sepal_length, sepal_length) == fustal.var(sepal_length)
 
 print("2 Sample T-Test (EQ)---")
 print("Fustal: ", fustal.two_sample_t_test_eq(sepal_length, sepal_width))
+print("Fustal: ", fustal.two_sample_t_test(sepal_length, sepal_width))
