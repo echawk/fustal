@@ -69,11 +69,13 @@ entry stderr (xs: []f64) : f64 =
   let denom = f64.sqrt (f64.i64 (length xs)) in
   sd / denom
 
+-- desc:
 entry sample_stderr (xs: []f64) : f64 =
   let sd = sample_std xs in
   let denom = f64.sqrt (f64.i64 (length xs)) in
   sd / denom
 
+-- desc:
 -- FIXME: seems to be slightly off (when compared to R on the iris SepalLength & Width data)
 -- NOTE: it does pass the assertion test when you run cov(x, x) == var(x)
 entry cov (xs: []f64) (ys: []f64) : f64 =
@@ -99,6 +101,7 @@ entry pooled_std_eq (as: []f64) (bs: []f64) : f64 =
   let b_sd = sample_std bs in
   f64.sqrt (((sq a_sd) + (sq b_sd)) / 2)
 
+-- desc:
 -- NOTE: temporary, make a 'def' later
 entry two_sample_t_test_eq(sample1: []f64) (sample2: []f64) : f64 =
   let s_p = pooled_std_eq sample1 sample2 in
@@ -116,17 +119,6 @@ entry two_sample_t_test (as: []f64) (bs: []f64) : f64 =
   let delta_xbar = xbar1 - xbar2 in
   let denom = f64.sqrt (sq (sample_stderr as) + sq (sample_stderr bs)) in
   delta_xbar / denom
-
--- TODO: implement the different cases of 2 sample t test
--- desc:
--- equation:
--- link: https://en.wikipedia.org/wiki/Student%27s_t-test#Independent_two-sample_t-test
--- entry two_sample_t_test(sample1: []f64) (sample2: []f64) : f64 =
---   let s_p = pooled_std in
---   let xbar_1 = mean sample1 in
---   let xbar_2 = mean sample2 in
---   let n_1 = (f64.i64 (length sample1)) in
---   let n_2 = (f64.i64 (length sample2)) in
 
 --def median (xs: []f64)
 --def mode (xs: []f64)
