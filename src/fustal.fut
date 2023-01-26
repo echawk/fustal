@@ -56,9 +56,8 @@ entry cov (xs: []f64) (ys: []f64) : f64 =
   let mu = mean xs in
   let v = mean ys in
   let n = f64.i64 (length xs) in
-  let xys = zip xs ys in
-  f64.sum (map (\(x, y) -> (x - mu) * (y - v)) xys) / n
-  
+  f64.sum (map2 (\x y -> (x - mu) * (y - v)) xs ys) / n
+
 -- FIXME: seems to be slightly off (when compared to R on the iris SepalLength data)
 entry one_sample_t_test(xs: []f64) (mu: f64) : f64 =
   let xbar = mean xs in
