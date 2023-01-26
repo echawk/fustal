@@ -67,6 +67,11 @@ entry stderr (xs: []f64) : f64 =
   let denom = f64.sqrt (f64.i64 (length xs)) in
   sd / denom
 
+entry sample_stderr (xs: []f64) : f64 =
+  let sd = sample_std xs in
+  let denom = f64.sqrt (f64.i64 (length xs)) in
+  sd / denom
+
 -- FIXME: seems to be slightly off (when compared to R on the iris SepalLength & Width data)
 -- NOTE: it does pass the assertion test when you run cov(x, x) == var(x)
 entry cov (xs: []f64) (ys: []f64) : f64 =
@@ -99,6 +104,16 @@ entry two_sample_t_test_eq(sample1: []f64) (sample2: []f64) : f64 =
   let xbar_2 = mean sample2 in
   let n = (f64.i64 (length sample1)) in
   (xbar_1 - xbar_2) / (s_p * f64.sqrt(2/n))
+
+-- desc:
+-- equation: $t = \frac{\Delta \bar{X}}{s_{\Delta \bar{X}}} = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{{s_{\bar{X_1}}}^2 + {s_{\bar{X_2}}}^2}}$
+-- link: https://en.wikipedia.org/wiki/Welch%27s_t-test
+entry two_sample_t_test (as: []f64) (bs: []f64) : f64 =
+  let xbar1 = mean as in
+  let xbar2 = mean bs in
+  let delta_xbar = xbar1 - xbar2 in
+  let denom = f64.sqrt (sq (sample_stderr as) + sq (sample_stderr bs)) in
+  delta_xbar / denom
 
 -- TODO: implement the different cases of 2 sample t test
 -- desc:
