@@ -33,3 +33,6 @@ print("Covariance---")
 print("Fustal: ", fustal.cov(sepal_length, sepal_width))
 
 assert fustal.cov(sepal_length, sepal_length) == fustal.var(sepal_length)
+
+print("2 Sample T-Test (EQ)---")
+print("Fustal: ", fustal.two_sample_t_test_eq(sepal_length, sepal_width))
