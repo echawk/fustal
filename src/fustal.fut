@@ -16,6 +16,8 @@
 -- https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
 -- https://www.geeksforgeeks.org/covariance-and-correlation-in-r-programming/
 -- https://github.com/mirror/r/tree/master/src/library/stats/src
+-- https://en.wikipedia.org/wiki/F-test
+-- https://en.wikipedia.org/wiki/Analysis_of_variance
 
 -- Reference: https://docs.python.org/3/library/statistics.html
 
