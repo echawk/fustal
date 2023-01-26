@@ -76,15 +76,12 @@ entry cov (xs: []f64) (ys: []f64) : f64 =
   let n = f64.i64 (length xs) in
   f64.sum (map2 (\x y -> (x - mu) * (y - v)) xs ys) / n
 
--- FIXME: seems to be slightly off (when compared to R on the iris SepalLength data)
--- -- I'm not using the sample standard deviation so that is likely why the answer
--- -- is wrong.
 -- desc:
 -- equation: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
 -- link: https://en.wikipedia.org/wiki/Student%27s_t-test#One-sample_t-test
 entry one_sample_t_test(xs: []f64) (mu: f64) : f64 =
   let xbar = mean xs in
-  let sd = std xs in
+  let sd = sample_std xs in
   let n = (f64.i64 (length xs)) in
   (xbar - mu) / (sd / f64.sqrt n)
 
