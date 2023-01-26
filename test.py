@@ -19,6 +19,9 @@ print("fustal---")
 for func in [fustal.mean, fustal.var, fustal.std]:
     print(f"{func.__name__}: ", func(sepal_length))
 
+print("Sample Standard Deviation---")
+print("Fustal: ", fustal.sample_std(sepal_length))
+
 print("Stderr---")
 print("Fustal: ", fustal.stderr(sepal_length))
 print("Numpy: ", np.std(sepal_length) / np.sqrt(np.size(sepal_length)))
