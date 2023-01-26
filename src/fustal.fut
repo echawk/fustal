@@ -27,25 +27,39 @@
 
 -- FIXME: Make these functions not depend on floating point values -- have them be defined for all types.
 
+-- desc:
+-- equation: $\mu = \frac{1}{n} \sum_{i=1}^{n}x_i$
+-- link:
 entry mean (xs: []f64) : f64 =
   (f64.sum xs) / f64.i64 (length xs)
 
+-- desc: Calculate the value of `x` squared.
+-- equation: $x^2$
 entry sq (x: f64) : f64 =
   x * x
 
+-- desc:
+-- equation: $ \sigma^2 = \frac{1}{n} \sum_{i=1}^n(x_i - \mu)^2$
+-- link: https://en.wikipedia.org/wiki/Variance
 entry var (xs: []f64) : f64 =
   let mu = mean xs in
   mean (map (\x -> (sq (x - mu))) xs)
 
+-- desc:
+-- equation: $\sigma = \sqrt{\sigma^2}$
+-- link:
 entry std (xs: []f64) : f64 =
   f64.sqrt (var xs)
 
 -- FIXME: doesn't seem to be correct.
+-- link: https://en.wikipedia.org/wiki/Standard_deviation#Estimation
 entry sample_std (xs: []f64) : f64 =
   let xbar = mean xs in
   f64.sqrt (f64.sum (map (\x -> (f64.abs (sq (x - xbar)))) xs))
 
--- https://en.wikipedia.org/wiki/Standard_error
+-- desc:
+-- equation: $\sigma_{\bar{x}} = \frac{\sigma}{\sqrt{n}}$
+-- link: https://en.wikipedia.org/wiki/Standard_error
 entry stderr (xs: []f64) : f64 =
   let sd = std xs in
   let denom = f64.sqrt (f64.i64 (length xs)) in
@@ -61,6 +75,11 @@ entry cov (xs: []f64) (ys: []f64) : f64 =
   f64.sum (map2 (\x y -> (x - mu) * (y - v)) xs ys) / n
 
 -- FIXME: seems to be slightly off (when compared to R on the iris SepalLength data)
+-- -- I'm not using the sample standard deviation so that is likely why the answer
+-- -- is wrong.
+-- desc:
+-- equation: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
+-- link: https://en.wikipedia.org/wiki/Student%27s_t-test#One-sample_t-test
 entry one_sample_t_test(xs: []f64) (mu: f64) : f64 =
   let xbar = mean xs in
   let sd = std xs in
