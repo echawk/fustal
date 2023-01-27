@@ -56,10 +56,16 @@ entry std (xs: []f64) : f64 =
 -- desc:
 -- equation: $\sqrt{\frac{1}{n - 1} \sum_{i=1}^{n}(x_i - \bar{x})^2}$
 -- link: https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation
-entry sample_std (xs: []f64) : f64 =
+entry sample_var (xs: []f64) : f64 =
   let xbar = mean xs in
   let n = f64.i64 (length xs) in
-  f64.sqrt ((f64.sum (map (\x -> (sq (x - xbar))) xs)) / (n - 1))
+  (f64.sum (map (\x -> (sq (x - xbar))) xs)) / (n - 1)
+
+-- desc:
+-- equation: $\sqrt{\frac{1}{n - 1} \sum_{i=1}^{n}(x_i - \bar{x})^2}$
+-- link: https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation
+entry sample_std (xs: []f64) : f64 =
+  f64.sqrt (sample_var xs)
 
 -- desc:
 -- equation: $\sigma_{\bar{x}} = \frac{\sigma}{\sqrt{n}}$
