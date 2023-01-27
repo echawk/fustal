@@ -1,5 +1,16 @@
 #!/bin/sh
 
 for f in src/*.fut; do
-    sed -E -n "/^(-- desc:|entry)/=" "$f" | paste -d',' - -
+    sed -E -n "/^(-- desc:|entry)/=" "$f" | paste -d',' - - \
+        | xargs -I{} sed -n "{}p" "$f" | tac \
+        | sed -E \
+        -e "s/(entry.*)/\n--\1\n\1/" \
+        -e "/link/s/-- link: (.*)/\n\\\\href{\1}{LINK}/" \
+        -e "/equation/s/-- equation: (.*)/\n\\\\begin{center}\n\t\1\n\\\\end{center}/" \
+        -e "/desc/s/-- desc: (.*)/\n\\\\noindent\nDescription:\n\n\1/" \
+        | sed -e "/--entry/s/entry/name/" \
+        | sed -E -e "/--name/s/([^\ ]*) ([^\ ]*):/<n>Name: \1 <n>Arguments: \2/" \
+        | sed -E -e "/--name/s/: ([^\ ]*) =$/<n>Returns: \1 <n>/" \
+        | sed -E -e "/--name/s/<n>/\n\n/g" \
+        | grep -v "^--"
 done
