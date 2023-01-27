@@ -120,5 +120,14 @@ entry two_sample_t_test (as: []f64) (bs: []f64) : f64 =
   let denom = f64.sqrt (sq (sample_stderr as) + sq (sample_stderr bs)) in
   delta_xbar / denom
 
+-- desc:
+-- equation: $\rho_{X,Y} = \frac{cov(X, Y)}{\sigma_X \sigma_Y}$
+-- link: https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
+entry pearson_correlation_coefficient (xs: []f64) (ys: []f64) : f64 =
+  let cov_xy = cov xs ys in
+  let x_sd = std xs in
+  let y_sd = std ys in
+  cov_xy / (y_sd * x_sd)
+
 --def median (xs: []f64)
 --def mode (xs: []f64)
