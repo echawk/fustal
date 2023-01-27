@@ -16,26 +16,20 @@ for func in [np.mean, np.var, np.std]:
     print(f"{func.__name__}: ", func(sepal_length))
 
 print("fustal---")
-for func in [fustal.mean, fustal.var, fustal.std]:
+for func in [fustal.mean, fustal.var, fustal.std, fustal.sample_var, fustal.sample_std]:
     print(f"{func.__name__}: ", func(sepal_length))
-
-print("Sample Standard Deviation---")
-print("Fustal: ", fustal.sample_std(sepal_length))
 
 print("Stderr---")
 print("Fustal: ", fustal.stderr(sepal_length))
 print("Numpy: ", np.std(sepal_length) / np.sqrt(np.size(sepal_length)))
 
+assert fustal.cov(sepal_length, sepal_length) == fustal.var(sepal_length)
+assert fustal.sample_cov(sepal_length, sepal_length) == fustal.sample_var(sepal_length)
+
 print("1 Sample T-Test---")
 print("Fustal: ", fustal.one_sample_t_test(sepal_length, 6))
 
-print("Covariance---")
-print("Fustal: ", fustal.cov(sepal_length, sepal_width))
-
-assert fustal.cov(sepal_length, sepal_length) == fustal.var(sepal_length)
-
-print("2 Sample T-Test (EQ)---")
-print("Fustal: ", fustal.two_sample_t_test_eq(sepal_length, sepal_width))
+print("2 Sample T-Test---")
 print("Fustal: ", fustal.two_sample_t_test(sepal_length, sepal_width))
 
 print("Pearson Correlation Coefficient---")
