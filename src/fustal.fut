@@ -100,23 +100,6 @@ entry one_sample_t_test(xs: []f64) (mu: f64) : f64 =
   (xbar - mu) / (sd / f64.sqrt n)
 
 -- desc:
--- equation:
--- link:
-entry pooled_std_eq (as: []f64) (bs: []f64) : f64 =
-  let a_sd = sample_std as in
-  let b_sd = sample_std bs in
-  f64.sqrt (((sq a_sd) + (sq b_sd)) / 2)
-
--- desc:
--- NOTE: temporary, make a 'def' later
-entry two_sample_t_test_eq(sample1: []f64) (sample2: []f64) : f64 =
-  let s_p = pooled_std_eq sample1 sample2 in
-  let xbar_1 = mean sample1 in
-  let xbar_2 = mean sample2 in
-  let n = (f64.i64 (length sample1)) in
-  (xbar_1 - xbar_2) / (s_p * f64.sqrt(2/n))
-
--- desc:
 -- equation: $t = \frac{\Delta \bar{X}}{s_{\Delta \bar{X}}} = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{{s_{\bar{X_1}}}^2 + {s_{\bar{X_2}}}^2}}$
 -- link: https://en.wikipedia.org/wiki/Welch%27s_t-test
 entry two_sample_t_test (as: []f64) (bs: []f64) : f64 =
