@@ -82,13 +82,11 @@ entry sample_stderr (xs: []f64) : f64 =
   sd / denom
 
 -- desc:
--- FIXME: seems to be slightly off (when compared to R on the iris SepalLength & Width data)
--- NOTE: it does pass the assertion test when you run cov(x, x) == var(x)
+-- equation:
 entry cov (xs: []f64) (ys: []f64) : f64 =
   let mu = mean xs in
   let v = mean ys in
-  let n = f64.i64 (length xs) in
-  f64.sum (map2 (\x y -> (x - mu) * (y - v)) xs ys) / n
+  mean (map2 (\x y -> (x - mu) * (y - v)) xs ys)
 
 -- desc:
 -- equation: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
