@@ -89,6 +89,15 @@ entry cov (xs: []f64) (ys: []f64) : f64 =
   mean (map2 (\x y -> (x - mu) * (y - v)) xs ys)
 
 -- desc:
+-- equation:
+-- NOTE: this function is equivalent to R's `cov(x,y)`
+entry sample_cov (xs: []f64) (ys: []f64) : f64 =
+  let mu = mean xs in
+  let v = mean ys in
+  let n = f64.i64 (length xs) in
+  f64.sum (map2 (\x y -> (x - mu) * (y - v)) xs ys) / (n - 1)
+
+-- desc:
 -- equation: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
 -- link: https://en.wikipedia.org/wiki/Student%27s_t-test#One-sample_t-test
 entry one_sample_t_test(xs: []f64) (mu: f64) : f64 =
