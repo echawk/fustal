@@ -124,5 +124,22 @@ entry pearson_correlation_coefficient (xs: []f64) (ys: []f64) : f64 =
   let y_sd = std ys in
   cov_xy / (y_sd * x_sd)
 
+-- desc: F-Test statistic for a one-way ANOVA
+-- equation:
+-- link: https://en.wikipedia.org/wiki/F-test
+-- FIXME: very very much WIP - one way anova f-test statistic
+-- FIXME: enable arbitrary numbers of groups (will need change in type signature)
+-- NOTE: assuming only 2 groups (allows us to test via assertions in test.py)
+-- FIXME: currently does not return the correct value
+entry f_test (as : []f64) (bs : []f64) : f64 =
+  let a_n = f64.i64 (length as) in
+  let b_n = f64.i64 (length bs) in
+  let a_bar = mean as in
+  let b_bar = mean bs in
+  let y_bar = ((f64.sum as) + (f64.sum bs)) / (a_n + b_n) in
+  let exp_var = (a_n * (sq (a_bar - y_bar))) + (b_n * (sq (b_bar - y_bar))) in
+  let unexp_var = f64.sum (map (\a -> (sq (a - a_bar)) / (a_n - 2)) as) + f64.sum (map (\b -> (sq (b - b_bar)) / (b_n - 2)) bs) in
+  exp_var / unexp_var
+
 --def median (xs: []f64)
 --def mode (xs: []f64)
