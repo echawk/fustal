@@ -16,6 +16,8 @@ fi
 
 FUTHARK_TARGET="${FUTHARK_TARGET:-c}"
 
+BUILD_DOCS="${BUILD_DOCS:-0}"
+
 case $FUTHARK_TARGET in
     cuda)
         for l in cuda cudart; do
@@ -29,6 +31,10 @@ esac
 [ -d output ] && rm -rf output
 mkdir output
 cp src/* output
+sh gendocs > output/doc.tex
 cd output
 futhark "$FUTHARK_TARGET" --library fustal.fut
 build_futhark_ffi fustal
+command -v latexmk && [ "$BUILD_DOCS" = 1 ] && {
+    latexmk -pdf doc.tex
+}
