@@ -3,6 +3,8 @@
 cat <<EOF
 \documentclass{article}
 
+\newcommand{\divider}{\par\noindent\rule{\textwidth}{1pt}}
+
 \begin{document}
 
 EOF
@@ -16,7 +18,7 @@ for f in src/*.fut; do
         -e "/equation/s/-- equation: (.*)/\n\\\\begin{center}\n\t\1\n\\\\end{center}/" \
         -e "/desc/s/-- desc: (.*)/\n\\\\noindent\nDescription:\n\n\1/" \
         | sed -e "/--entry/s/entry/name/" \
-        | sed -E -e "/--name/s/([^\ ]*) ([^\ ]*):/<n>Name: \\\\textbf{\1}<n>Arguments: \2:/" \
+        | sed -E -e "/--name/s/([^\ ]*) ([^\ ]*):/<n>\\\\divider<n>Name: \\\\textbf{\1}<n>Arguments: \2:/" \
         | sed -E -e "/--name/s/: ([^\ ]*) =$/<n>Returns: $\1$ <n>/" \
         | sed -E -e "/--name/s/<n>/\n\n/g" \
         | sed -E -e "/Arguments/s/:/: \$/" \
