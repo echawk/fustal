@@ -1,5 +1,12 @@
 #!/bin/sh
 
+cat <<EOF
+\documentclass{article}
+
+\begin{document}
+
+EOF
+
 for f in src/*.fut; do
     sed -E -n "/^(-- desc:|entry)/=" "$f" | paste -d',' - - \
         | xargs -I{} sed -n "{}p" "$f" | tac \
@@ -9,8 +16,17 @@ for f in src/*.fut; do
         -e "/equation/s/-- equation: (.*)/\n\\\\begin{center}\n\t\1\n\\\\end{center}/" \
         -e "/desc/s/-- desc: (.*)/\n\\\\noindent\nDescription:\n\n\1/" \
         | sed -e "/--entry/s/entry/name/" \
-        | sed -E -e "/--name/s/([^\ ]*) ([^\ ]*):/<n>Name: \1 <n>Arguments: \2/" \
-        | sed -E -e "/--name/s/: ([^\ ]*) =$/<n>Returns: \1 <n>/" \
+        | sed -E -e "/--name/s/([^\ ]*) ([^\ ]*):/<n>Name: \\\\textbf{\1}<n>Arguments: \2:/" \
+        | sed -E -e "/--name/s/: ([^\ ]*) =$/<n>Returns: $\1$ <n>/" \
         | sed -E -e "/--name/s/<n>/\n\n/g" \
-        | grep -v "^--"
+        | sed -E -e "/Arguments/s/:/: \$/" \
+        | sed -E -e "/Arguments/s/$/\$/" \
+        | sed -E "/^entry/s/(.*)/Type Signature:\n\n\\\\begin{verbatim}\n\1\n\\\\end{verbatim}/" \
+        | grep -v "^--" \
+        | sed "/Name/s/_/\\\\_/g" \
+        | grep -v "href"
 done
+
+cat <<EOF
+\end{document}
+EOF
