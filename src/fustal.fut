@@ -123,7 +123,7 @@ entry pearson_correlation_coefficient (xs: []f64) (ys: []f64) : f64 =
 -- FIXME: enable arbitrary numbers of groups (will need change in type signature)
 -- NOTE: assuming only 2 groups (allows us to test via assertions in test.py)
 -- FIXME: currently does not return the correct value
-entry f_test (as : []f64) (bs : []f64) : f64 =
+entry f_test (as: []f64) (bs: []f64) : f64 =
   let a_n = f64.i64 (length as) in
   let b_n = f64.i64 (length bs) in
   let a_bar = mean as in
