@@ -117,21 +117,28 @@ entry pearson_correlation_coefficient (xs: []f64) (ys: []f64) : f64 =
   cov_xy / (y_sd * x_sd)
 
 -- desc: F-Test statistic for a one-way ANOVA
--- equation:
+-- equation: $F = \frac{\sum_{i=1}^K n_i \frac{(\bar{Y_i} - \bar{Y})^2}{(K - 1)}}{\sum_{i=1}^K\sum_{j=1}^{n_i}\frac{(Y_{ij} - \bar{Y_i})^2}{(N - K)}}$
 -- link: https://en.wikipedia.org/wiki/F-test
 -- FIXME: very very much WIP - one way anova f-test statistic
--- FIXME: enable arbitrary numbers of groups (will need change in type signature)
--- NOTE: assuming only 2 groups (allows us to test via assertions in test.py)
 -- FIXME: currently does not return the correct value
-entry f_test (as: []f64) (bs: []f64) : f64 =
-  let a_n = f64.i64 (length as) in
-  let b_n = f64.i64 (length bs) in
-  let a_bar = mean as in
-  let b_bar = mean bs in
-  let y_bar = ((f64.sum as) + (f64.sum bs)) / (a_n + b_n) in
-  let exp_var = (a_n * (sq (a_bar - y_bar))) + (b_n * (sq (b_bar - y_bar))) in
-  let unexp_var = f64.sum (map (\a -> (sq (a - a_bar)) / (a_n - 2)) as) + f64.sum (map (\b -> (sq (b - b_bar)) / (b_n - 2)) bs) in
-  exp_var / unexp_var
+-- TODO: clean up variable names?
+entry f_test (M: [][]f64) : f64 =
+  let K = length M in
+  let nV = map length M in
+  let N = i64.sum nV in
+  let ybV = map mean M in
+  let yb_num = map f64.sum M |> f64.sum in
+  let yb_den = f64.i64 (map length M |> i64.sum) in
+  let yb = yb_num / yb_den in
+  let exp_var = map (\i -> (f64.i64 nV[i]) * ((sq ((ybV[i]) - yb)) / (f64.i64 (K - 1)))) (iota K) |> f64.sum in
+  let f = \i -> f64.sum (map (\yij -> (sq (yij - ybV[i])) / (f64.i64 (N - K))) M[i]) in
+  let une_var = map f (iota K) |> f64.sum in
+  exp_var / une_var
 
---def median (xs: []f64)
---def mode (xs: []f64)
+-- FIXME: think about the api for this
+-- -- desc:
+-- -- equation: $\chi^2 = \sum_{i=1}^k\frac{(O_i - E_i)^2}{E_i}$
+-- -- link:
+-- entry chi_squared_test (as: []f64) (bs: []f64) : f64 =
+--   f64.sum as
+  
