@@ -1,5 +1,9 @@
 #!/bin/sh
 [ -d output ] || exit 1
-PYTHONPATH=$PWD/output ./test.py > output/test-py-output
-R --no-save < test.R | grep '^\[1\]' | cut -d']' -f2 | tr -d ' ' > output/test-R-output
-paste -d'\n' output/test-py-output output/test-R-output | paste - -
+pout=output/test-py-output
+rout=output/test-R-output
+echo "fustal" > "$pout"
+echo "R" > "$rout"
+PYTHONPATH=$PWD/output ./test.py >> "$pout"
+R --no-save < test.R | grep '^\[1\]' | cut -d']' -f2 | tr -d ' ' >> "$rout"
+paste -d'\n' "$pout" "$rout" | paste - -
