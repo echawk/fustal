@@ -119,8 +119,8 @@ entry pearson_correlation_coefficient (xs: []f64) (ys: []f64) : f64 =
 -- desc: F-Test statistic for a one-way ANOVA
 -- equation: $F = \frac{\sum_{i=1}^K n_i \frac{(\bar{Y_i} - \bar{Y})^2}{(K - 1)}}{\sum_{i=1}^K\sum_{j=1}^{n_i}\frac{(Y_{ij} - \bar{Y_i})^2}{(N - K)}}$
 -- link: https://en.wikipedia.org/wiki/F-test
--- FIXME: very very much WIP - one way anova f-test statistic
 -- FIXME: currently does not return the correct value
+-- -- NOTE: does seem to return the correct value when comparing to R - see ./test output
 -- TODO: clean up variable names?
 entry f_test (M: [][]f64) : f64 =
   let K = length M in
