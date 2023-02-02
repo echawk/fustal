@@ -1,2 +1,5 @@
 #!/bin/sh
-PYTHONPATH=$PWD/output ./test.py
+[ -d output ] || exit 1
+PYTHONPATH=$PWD/output ./test.py > output/test-py-output
+R --no-save < test.R | grep '^\[1\]' | cut -d']' -f2 | tr -d ' ' > output/test-R-output
+paste -d'\n' output/test-py-output output/test-R-output | paste - -
