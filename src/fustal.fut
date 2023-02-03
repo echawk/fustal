@@ -135,22 +135,21 @@ entry f_test (M: [][]f64) : f64 =
   let une_var = map f (iota K) |> f64.sum in
   exp_var / une_var
 
-
--- Just a helper function for the method below. Might just embed it...
-def chisq_getExpected (arr: []i64) (totals: []i64) (N: i64) =
-  map (\i -> (f64.i64 arr[i]) / (f64.i64 totals[i])) (iota N)
+--desc: Convert i64 matrices into f64 matrices.
+def Mf64_Mi64 (iM: [][]i64) : [][]f64 =
+  map (\r -> (map (\v -> f64.i64 v)) r) iM
 
 -- let m = [[120, 90, 40],[110,95,45]] : [][]i64
--- FIXME: think about the api for this
--- FIXME: wip
+-- chi_squared_test(m)
 -- desc:
 -- equation: $\chi^2 = \sum_{i=1}^k\frac{(O_i - E_i)^2}{E_i}$
--- link:
-entry chi_squared_test (M: [][]i64) : []f64 =
-  let rowN = length M in
-  let colN = length M[0] in 
-  let rowTotals = map i64.sum M in
-  let colTotals = transpose M |> map i64.sum in
-  -- map (\row -> chisq_getExpected row colTotals colN) M |> head
-  map (\row -> chisq_getExpected row rowTotals rowN) M |> head
-  
+-- link: https://en.wikipedia.org/wiki/Chi-squared_test
+entry chi_squared_test (M: [][]i64) : f64 =
+  let fM = Mf64_Mi64 M in
+  let rowTotals = map f64.sum fM in
+  let colTotals = transpose fM |> map f64.sum in
+  let obvTotal = f64.sum rowTotals in
+  let expM = map (\rt -> map (\ct -> rt * ct / obvTotal) colTotals) rowTotals in -- (row * col) / n
+  map2 (\or er -> map2 (\ov ev -> (sq (ov - ev)) / ev) or er) fM expM
+       |> map f64.sum
+              |> f64.sum
