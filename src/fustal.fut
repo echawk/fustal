@@ -135,10 +135,22 @@ entry f_test (M: [][]f64) : f64 =
   let une_var = map f (iota K) |> f64.sum in
   exp_var / une_var
 
+
+-- Just a helper function for the method below. Might just embed it...
+def chisq_getExpected (arr: []i64) (totals: []i64) (N: i64) =
+  map (\i -> (f64.i64 arr[i]) / (f64.i64 totals[i])) (iota N)
+
+-- let m = [[120, 90, 40],[110,95,45]] : [][]i64
 -- FIXME: think about the api for this
--- -- desc:
--- -- equation: $\chi^2 = \sum_{i=1}^k\frac{(O_i - E_i)^2}{E_i}$
--- -- link:
--- entry chi_squared_test (as: []f64) (bs: []f64) : f64 =
---   f64.sum as
+-- FIXME: wip
+-- desc:
+-- equation: $\chi^2 = \sum_{i=1}^k\frac{(O_i - E_i)^2}{E_i}$
+-- link:
+entry chi_squared_test (M: [][]i64) : []f64 =
+  let rowN = length M in
+  let colN = length M[0] in 
+  let rowTotals = map i64.sum M in
+  let colTotals = transpose M |> map i64.sum in
+  -- map (\row -> chisq_getExpected row colTotals colN) M |> head
+  map (\row -> chisq_getExpected row rowTotals rowN) M |> head
   
