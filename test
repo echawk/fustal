@@ -5,5 +5,5 @@ rout=output/test-R-output
 echo "fustal" > "$pout"
 echo "R" > "$rout"
 PYTHONPATH=$PWD/output ./test.py >> "$pout"
-R --no-save < test.R | awk '/^\[1\]/ {print $2} ; /^Species/ { print $5 }'>> "$rout"
+R --no-save < test.R | awk '/^\[1\]/ {print $2} ; /^Species/ { print $5 } ; /^X-squared/ { print $3 }'>> "$rout"
 paste -d'\n' "$pout" "$rout" | paste - -
