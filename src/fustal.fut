@@ -153,3 +153,13 @@ entry chi_squared_test (M: [][]i64) : f64 =
   map2 (\or er -> map2 (\ov ev -> (sq (ov - ev)) / ev) or er) fM expM
        |> map f64.sum
               |> f64.sum
+
+-- desc:
+-- equation:
+-- link: https://en.wikipedia.org/wiki/Simple_linear_regression
+entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
+  let xbar = mean xs in
+  let ybar = mean ys in
+  let beta_hat = (map2 (\xi yi -> (xi - xbar) * (yi - ybar)) xs ys |> f64.sum) / (map (\xi -> sq (xi - xbar)) xs |> f64.sum) in
+  let alpha_hat = ybar - (beta_hat * xbar) in
+  (alpha_hat, beta_hat)
