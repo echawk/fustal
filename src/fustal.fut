@@ -155,7 +155,7 @@ entry chi_squared_test (M: [][]i64) : f64 =
               |> f64.sum
 
 -- desc:
--- equation:
+-- equation: $(\hat{\alpha}, \hat{\beta}) = (\bar{y} - (\hat{\beta} - \bar{x}), \frac{\sum_{i = 1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sum_{i = 1}^n (x_i - \bar{x})^2})$
 -- link: https://en.wikipedia.org/wiki/Simple_linear_regression
 entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
   let xbar = mean xs in
