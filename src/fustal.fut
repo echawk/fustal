@@ -163,3 +163,11 @@ entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
   let beta_hat = (map2 (\xi yi -> (xi - xbar) * (yi - ybar)) xs ys |> f64.sum) / (map (\xi -> sq (xi - xbar)) xs |> f64.sum) in
   let alpha_hat = ybar - (beta_hat * xbar) in
   (alpha_hat, beta_hat)
+
+-- link: https://en.wikipedia.org/wiki/Linear_regression#Simple_and_multiple_linear_regression
+
+-- link: https://en.wikipedia.org/wiki/General_linear_model
+
+-- link: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+
+-- link: https://en.wikipedia.org/wiki/Logistic_regression
