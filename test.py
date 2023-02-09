@@ -18,7 +18,7 @@ assert fustal.sample_cov(sepal_length, sepal_length) == fustal.sample_var(sepal_
 
 print(fustal.one_sample_t_test(sepal_length, 6))
 
-for func in [fustal.two_sample_t_test, fustal.pearson_correlation_coefficient, fustal.simple_linear_regression]:
+for func in [fustal.two_sample_t_test, fustal.pearson_correlation_coefficient, fustal.simple_linear_regression, fustal.wilcoxon_rank_sum_test]:
     print(func(sepal_length, sepal_width))
 
 # Data to compute ANOVA
