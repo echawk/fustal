@@ -1,6 +1,6 @@
 In no particular order:
 
-- [ ] Setup Continuous Integration
+- [x] Setup Continuous Integration
 - [x] Write SETUP.md under docs/
 - [x] Write initial test suite infrastructure.
     - [ ] Integrate `test.R` & `test.py`
