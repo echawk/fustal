@@ -168,6 +168,16 @@ entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
 
 -- link: https://en.wikipedia.org/wiki/General_linear_model
 
+-- equation: $U = \sum_{i=1}^n\sum_{j=1}^m S(X_i, Y_j), S(X, Y) = ...$
 -- link: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+-- FIXME: this is the wrong computation? (see wilcox.test() in R)
+entry wilcoxon_rank_sum_test (xs: []f64) (ys: []f64) : f64 =
+  let S =
+    \x y -> if x > y then 1
+            else
+            if x < y then 0
+       else 0.5
+            in
+  map2 S xs ys |> f64.sum
 
 -- link: https://en.wikipedia.org/wiki/Logistic_regression
