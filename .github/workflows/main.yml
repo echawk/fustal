@@ -9,13 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - run: sudo apt install wget
+      - run: sudo apt install wget python3 python3-pip
 
       - run: |
           wget https://futhark-lang.org/releases/futhark-nightly-linux-x86_64.tar.xz
           tar xf futhark-nightly-linux-x86_64.tar.xz
           cd futhark-nightly-linux-x86_64 && PREFIX="$HOME/.local/" make install
           echo "$HOME/.local/bin/" >> $GITHUB_PATH
+
+      - run:
+          pip install futhark-ffi
 
       - run:
           ./build
