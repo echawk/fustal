@@ -6,9 +6,9 @@ on:
 
 jobs:
   build:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - runs-on: ubuntu-latest
       - run: sudo apt install wget
 
       - run: |
