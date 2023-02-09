@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh -e
 
 # Check environment for needed software.
 
@@ -31,10 +31,10 @@ esac
 [ -d output ] && rm -rf output
 mkdir output
 cp src/* output
-sh gendocs > output/doc.tex
+sh gendocs > output/doc.tex 2> /dev/null
 cd output
 futhark "$FUTHARK_TARGET" --library fustal.fut
 build_futhark_ffi fustal
-command -v latexmk && [ "$BUILD_DOCS" = 1 ] && {
+if command -v latexmk && [ "$BUILD_DOCS" = 1 ]; then
     latexmk -pdf doc.tex
-}
+fi
