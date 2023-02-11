@@ -3,6 +3,8 @@
 cat <<EOF
 \documentclass{article}
 
+\usepackage{amsmath}
+
 \newcommand{\divider}{\par\noindent\rule{\textwidth}{1pt}}
 
 \begin{document}
