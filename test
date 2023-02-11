@@ -6,4 +6,13 @@ echo "fustal" > "$pout"
 echo "R" > "$rout"
 PYTHONPATH=$PWD/output ./test.py >> "$pout"
 R --no-save < test.R | awk '/^\[1\]/ {print $2 "\n" $3}' | sed "/^$/d" >> "$rout"
-paste -d'\n' "$pout" "$rout" | paste - -
+e=0.00001
+paste -d'\n' "$pout" "$rout" | paste - - |
+      awk "/[0-9]/ { d=\$1-\$2; d=d*d; d=sqrt(d) ; if(d > $e) {exit 1} }"
+if [ $? -eq 0 ]; then
+    echo PASSED
+    exit 0
+else
+    echo FAILED
+    exit 1
+fi
