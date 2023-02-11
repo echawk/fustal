@@ -6,6 +6,10 @@ echo "fustal" > "$pout"
 echo "R" > "$rout"
 PYTHONPATH=$PWD/output ./test.py >> "$pout"
 R --no-save < test.R | awk '/^\[1\]/ {print $2 "\n" $3}' | sed "/^$/d" >> "$rout"
+if ! [ $rout = $pout ]; then
+    "$rout & $pout do not have the same number of lines."
+    exit 1
+fi
 e=0.00001
 paste -d'\n' "$pout" "$rout" | paste - - |
       awk "/[0-9]/ { d=\$1-\$2; d=d*d; d=sqrt(d) ; if(d > $e) {exit 1} }"
