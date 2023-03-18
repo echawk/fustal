@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - run: sudo apt install wget r-base
+      - run: sudo apt install wget python3 python3-pip r-base
 
       - run: |
           wget https://futhark-lang.org/releases/futhark-nightly-linux-x86_64.tar.xz
@@ -17,12 +17,8 @@ jobs:
           cd futhark-nightly-linux-x86_64 && PREFIX="$HOME/.local/" make install
           echo "$HOME/.local/bin/" >> $GITHUB_PATH
 
-      - uses: actions/setup-python@v4
-        with:
-            python-version: 3.9
-            cache: 'pip' # cache our pip depends.
       - run:
-          pip install -r requirements.txt
+          pip install futhark-ffi
 
       - run:
           ./build
