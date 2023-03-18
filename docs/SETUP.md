@@ -31,15 +31,49 @@ For example, the following code will build a CUDA version of the
 library as well as build the PDF version of the documentation:
 
 ```sh
-FUTHARK_TARGET=cuda BUILD_DOCS=1 ./build
+FUTHARK_TARGET=cuda BUILD_DOCS_PDF=1 ./build
 ```
 
+**NOTE:** Building the PDF documentation requires `latexmk` to be present on your system.
+
 Valid `FUTHARK_TARGET`s:
+
 * c
 * multicore
 * opencl
 * cuda
 
-**NOTE:** `ispc` is *not* a valid target.
+**NOTE:** `ispc` is *not* a valid target, as futhark-ffi does not support it yet.
 
-**NOTE:** To build the PDF documentation, you need to have LaTeX installed, and `latexmk` in the system `$PATH`.
+To build the HTML version of the docs, run the following instead:
+
+```sh
+BUILD_DOCS_HTML=1 ./build
+```
+
+**NOTE:** This requires `make4ht` to be available on your system.
+
+# Testing the library
+
+Once the library is built, you can run the test suite by simply running:
+
+```
+./test
+```
+
+If all of the tests passed, the word "PASSED" will be printed, otherwise
+it will print "FAILED".
+
+## Adding tests to the test suite
+
+Currently this process is far from streamlined. However the rough process is
+as follows:
+
+1. Implement the test in `test.py`, likely as the very last test.
+2. Implement the test in `test.R`, again, likely as the very last test.
+   * **NOTE:** You will likely want to wrap any numerical value with `as.vector()`.
+3. Run `./test` and see if it passes.
+
+I would like to make this setup far more streamlined in the future, with
+the new system allowing for the tests to be printed in any order, since
+presently each test has to be on the exact same line as its counterpart.
