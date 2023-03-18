@@ -24,26 +24,26 @@
 entry sq (x: f64) : f64 =
   x * x
 
--- desc:
+-- desc: Calculate the mean of $xs$.
 -- equation: $\mu = \frac{1}{n} \sum_{i=1}^{n}x_i$
 -- link:
 entry mean (xs: []f64) : f64 =
   (f64.sum xs) / f64.i64 (length xs)
 
--- desc:
+-- desc: Calculate the population Variance for $xs$.
 -- equation: $\sigma^2 = \frac{1}{n} \sum_{i=1}^n(x_i - \mu)^2$
 -- link: https://en.wikipedia.org/wiki/Variance
 entry var (xs: []f64) : f64 =
   let mu = mean xs in
   mean (map (\x -> (sq (x - mu))) xs)
 
--- desc:
+-- desc: Calculate the population standard deviation for $xs$.
 -- equation: $\sigma = \sqrt{\sigma^2}$
 -- link:
 entry std (xs: []f64) : f64 =
   f64.sqrt (var xs)
 
--- desc:
+-- desc: Calculate the population standard error for $xs$.
 -- equation: $\sigma_{\bar{x}} = \frac{\sigma}{\sqrt{n}}$
 -- link: https://en.wikipedia.org/wiki/Standard_error
 entry stderr (xs: []f64) : f64 =
@@ -58,7 +58,7 @@ entry cov (xs: []f64) (ys: []f64) : f64 =
   let v = mean ys in
   mean (map2 (\x y -> (x - mu) * (y - v)) xs ys)
 
--- desc:
+-- desc: Calculate the sample variance for $xs$.
 -- equation: $s^2 = \frac{1}{n - 1} \sum_{i=1}^{n}(x_i - \bar{x})^2$
 -- link: https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation
 entry sample_var (xs: []f64) : f64 =
@@ -66,13 +66,13 @@ entry sample_var (xs: []f64) : f64 =
   let n = f64.i64 (length xs) in
   (f64.sum (map (\x -> (sq (x - xbar))) xs)) / (n - 1)
 
--- desc:
+-- desc: Calculate the sample standard deviation for $xs$.
 -- equation: $s = \sqrt{s^2}$
 -- link: https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation
 entry sample_std (xs: []f64) : f64 =
   f64.sqrt (sample_var xs)
 
--- desc:
+-- desc: Calculate the sample standard error for $xs$.
 -- equation: $se_{\bar{x}} = \frac{s}{\sqrt{n}}$
 entry sample_stderr (xs: []f64) : f64 =
   let sd = sample_std xs in
@@ -116,7 +116,7 @@ entry pearson_correlation_coefficient (xs: []f64) (ys: []f64) : f64 =
   let y_sd = std ys in
   cov_xy / (y_sd * x_sd)
 
--- desc: F-Test statistic for a one-way ANOVA
+-- desc: Calculates the F-Test statistic for a one-way ANOVA, for a matrix $M$.
 -- equation: $F = \frac{\sum_{i=1}^K n_i \frac{(\bar{Y_i} - \bar{Y})^2}{(K - 1)}}{\sum_{i=1}^K\sum_{j=1}^{n_i}\frac{(Y_{ij} - \bar{Y_i})^2}{(N - K)}}$
 -- link: https://en.wikipedia.org/wiki/F-test
 -- FIXME: currently does not return the correct value
