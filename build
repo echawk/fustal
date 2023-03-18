@@ -40,5 +40,5 @@ if command -v latexmk && [ "$BUILD_DOCS_PDF" = 1 ]; then
     latexmk -pdf doc.tex
 fi
 if command -v make4ht &&[ "$BUILD_DOCS_HTML" = 1 ]; then
-    make4ht doc.tex "mathjax"
+    make4ht doc.tex
 fi
