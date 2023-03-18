@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cat <<EOF
+cat << EOF
 \documentclass{article}
 
 \usepackage{amsmath}
@@ -11,26 +11,28 @@ cat <<EOF
 
 EOF
 
+# FIXME: Remove 'arguments' section from docs, since all of that info is encoded in the type signature.
+
 for f in src/*.fut; do
-    sed -E -n "/^(-- desc:|entry)/=" "$f" | paste -d',' - - \
-        | xargs -I{} sed -n "{}p" "$f" | tac \
-        | sed -E \
-        -e "s/(entry.*)/\n--\1\n\1/" \
-        -e "/link/s/-- link: (.*)/\n\\\\href{\1}{LINK}/" \
-        -e "/equation/s/-- equation: (.*)/\n\\\\begin{center}\n\t\1\n\\\\end{center}/" \
-        -e "/desc/s/-- desc: (.*)/\n\\\\noindent\nDescription:\n\n\1/" \
-        | sed -e "/--entry/s/entry/name/" \
-        | sed -E -e "/--name/s/([^\ ]*) ([^\ ]*):/<n>\\\\divider<n>Name: \\\\textbf{\1}<n>Arguments: \2:/" \
-        | sed -E -e "/--name/s/: ([^\ ]*) =$/<n>Returns: $\1$ <n>/" \
-        | sed -E -e "/--name/s/<n>/\n\n/g" \
-        | sed -E -e "/Arguments/s/:/: \$/" \
-        | sed -E -e "/Arguments/s/$/\$/" \
-        | sed -E "/^entry/s/(.*)/Type Signature:\n\n\\\\begin{verbatim}\n\1\n\\\\end{verbatim}/" \
-        | grep -v "^--" \
-        | sed "/Name/s/_/\\\\_/g" \
-        | grep -v "href"
+    sed -E -n "/^(-- desc:|entry)/=" "$f" | paste -d',' - - |
+          xargs -I{} sed -n "{}p" "$f" | tac |
+          sed -E \
+            -e "s/(entry.*)/\n--\1\n\1/" \
+            -e "/link/s/-- link: (.*)/\n\\\\href{\1}{LINK}/" \
+            -e "/equation/s/-- equation: (.*)/\n\\\\begin{center}\n\t\1\n\\\\end{center}/" \
+            -e "/desc/s/-- desc: (.*)/\n\\\\noindent\nDescription:\n\n\1/" |
+          sed -e "/--entry/s/entry/name/" |
+          sed -E -e "/--name/s/([^\ ]*) ([^\ ]*):/<n>\\\\divider<n>Name: \\\\textbf{\1}<n>Arguments: \2:/" |
+          sed -E -e "/--name/s/: ([^\ ]*) =$/<n>Returns: $\1$ <n>/" |
+          sed -E -e "/--name/s/<n>/\n\n/g" |
+          sed -E -e "/Arguments/s/:/: \$/" |
+          sed -E -e "/Arguments/s/$/\$/" |
+          sed -E "/^entry/s/(.*)/Type Signature:\n\n\\\\begin{verbatim}\n\1\n\\\\end{verbatim}/" |
+          grep -v "^--" |
+          sed "/Name/s/_/\\\\_/g" |
+          grep -v "href"
 done
 
-cat <<EOF
+cat << EOF
 \end{document}
 EOF
