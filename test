@@ -1,34 +1,57 @@
 #!/bin/sh
 # Ensure we only test if the library has been built.
 [ -d output ] || exit 1
-pout=output/test-py-output
-rout=output/test-R-output
-echo "fustal" > "$pout"
-echo "R" > "$rout"
+
+test_out=output/test-output.csv
 
 # Run our two separate programs.
 # Each program outputs a series of numbers for a specific test.
 # In the future, this should be made to accomodate having the same test
 # appear on different lines, because it currently assumes that each line
 # is the same test in both outputs.
-PYTHONPATH=$PWD/output ./test.py >> "$pout"
-R --no-save < test.R | awk '/^\[1\]/ {print $2 "\n" $3}' | sed "/^$/d" >> "$rout"
+PYTHONPATH=$PWD/output ./test.py > "$test_out"
+R --no-save < test.R |
+      grep '^\[1\]' |
+      tr -d '\n' |
+      sed 's/\[1] "/\nR /g' |
+      sed 's/"\[1]//g' |
+      tr -s ' ' |
+      tr ' ' ',' >> "$test_out"
+
+py_lines=$(grep -c "^py" "$test_out")
+R_lines=$(grep -c "^R" "$test_out")
 
 # Make sure that each test is ran in both programs.
-if ! [ $(wc -l < $rout) = $(wc -l < $pout) ]; then
-    echo "$rout & $pout do not have the same number of lines."
+if ! [ "$py_lines" = "$R_lines" ]; then
+    echo "There is a difference in the number of tests between the python & R versions"
     exit 1
 fi
 
 # Main testing code below. Check if there are any significant
 # differences between the numbers that fustal returns vs R.
 e=0.00001
-paste -d'\n' "$pout" "$rout" | paste - - |
-    awk "/[0-9]/ {d=\$1-\$2; d=d*d; d=sqrt(d); if(d > $e){exit 1}}"
-if [ $? -eq 0 ]; then
-    echo PASSED
-    exit 0
-else
-    echo FAILED
-    exit 1
-fi
+
+funcs=$(grep "^py" "$test_out" | cut -d',' -f2)
+for func in $funcs; do
+    i=1
+    pyv="$(grep "py,$func," "$test_out" | cut -d',' -f3-),"
+    Rv="$(grep "R,$func," "$test_out" | cut -d',' -f3-),"
+    pys=$(echo "$pyv" | cut -s -d',' -f"$i")
+    Rs=$(echo "$Rv" | cut -s -d',' -f"$i")
+    while true; do
+        pys=$(echo "$pyv" | cut -s -d',' -f"$i")
+        Rs=$(echo "$Rv" | cut -s -d',' -f"$i")
+        if [ -n "$pys" ] && [ -n "$Rs" ]; then
+            awk "BEGIN {d=$pys - $Rs; d=d*d; d=sqrt(d); if(d > $e) {exit 1}}"
+            if [ $? -eq 0 ]; then
+                echo "PASSED - $func"
+            else
+                echo "FAILED - $func"
+                exit 1
+            fi
+            i=$((i + 1))
+        else
+            break
+        fi
+    done
+done
