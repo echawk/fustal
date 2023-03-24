@@ -19,19 +19,19 @@ FUTHARK_TARGET="${FUTHARK_TARGET:-c}"
 BUILD_DOCS="${BUILD_DOCS:-0}"
 
 case $FUTHARK_TARGET in
-    cuda)
-        for l in cuda cudart; do
-            export CFLAGS="$CFLAGS $(pkg-config --cflags $l)"
-            export CFLAGS="$CFLAGS $(pkg-config --libs $l)"
-        done
-        ;;
+cuda)
+    for l in cuda cudart; do
+        export CFLAGS="$CFLAGS $(pkg-config --cflags $l)"
+        export CFLAGS="$CFLAGS $(pkg-config --libs $l)"
+    done
+    ;;
 esac
 
 # TODO: add cleaning step
 [ -d output ] && rm -rf output
 mkdir output
 cp src/* output
-sh gendocs > output/doc.tex 2> /dev/null
+sh gendocs >output/doc.tex 2>/dev/null
 cd output
 futhark "$FUTHARK_TARGET" --library fustal.fut
 build_futhark_ffi fustal
@@ -39,6 +39,6 @@ build_futhark_ffi fustal
 if command -v latexmk && [ "$BUILD_DOCS_PDF" = 1 ]; then
     latexmk -pdf doc.tex
 fi
-if command -v make4ht &&[ "$BUILD_DOCS_HTML" = 1 ]; then
-    make4ht doc.tex
+if command -v make4ht && [ "$BUILD_DOCS_HTML" = 1 ]; then
+    make4ht doc.tex "mathjax"
 fi
