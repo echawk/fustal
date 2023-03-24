@@ -4,20 +4,25 @@
 
 test_out=output/test-output.csv
 
-# Run our two separate programs.
-# Each program outputs a series of numbers for a specific test.
-# In the future, this should be made to accomodate having the same test
-# appear on different lines, because it currently assumes that each line
-# is the same test in both outputs.
-PYTHONPATH=$PWD/output ./test.py > "$test_out"
-R --no-save < test.R |
-      grep '^\[1\]' |
-      tr -d '\n' |
-      sed 's/\[1] "/\nR /g' |
-      sed 's/"\[1]//g' |
-      tr -s ' ' |
-      tr ' ' ',' >> "$test_out"
+# TODO: log the amount of time fustal & R take to run.
 
+# Run our two separate programs, each produces
+# a CSV of their output with enough information
+# that we can discern between the two.
+PYTHONPATH=$PWD/output ./test.py >"$test_out"
+# We have to be a little hacky with R, but
+# the main idea is to keep only the lines
+# with the output, and then to properly format
+# said lines.
+R --no-save <test.R |
+    grep '^\[1\]' |
+    tr -d '\n' |
+    sed 's/\[1] "/\nR /g' |
+    sed 's/"\[1]//g' |
+    tr -s ' ' |
+    tr ' ' ',' >>"$test_out"
+
+# TODO: consider removing this check from the test suite...
 py_lines=$(grep -c "^py" "$test_out")
 R_lines=$(grep -c "^R" "$test_out")
 
@@ -29,28 +34,42 @@ fi
 
 # Main testing code below. Check if there are any significant
 # differences between the numbers that fustal returns vs R.
+
+# Our value to denote a significant difference between two numbers.
 e=0.00001
 
 funcs=$(grep "^py" "$test_out" | cut -d',' -f2)
 for func in $funcs; do
     i=1
+    # pyv - *py*thon *v*ector
+    # Rv - *R* *v*ector
     pyv="$(grep "py,$func," "$test_out" | cut -d',' -f3-),"
     Rv="$(grep "R,$func," "$test_out" | cut -d',' -f3-),"
-    pys=$(echo "$pyv" | cut -s -d',' -f"$i")
-    Rs=$(echo "$Rv" | cut -s -d',' -f"$i")
     while true; do
+        # pys - *py*thon *s*calar
+        # Rs - *R* *s*calar
+        # NOTE: The addition of the '-s' ensures that we can leave the loop.
         pys=$(echo "$pyv" | cut -s -d',' -f"$i")
         Rs=$(echo "$Rv" | cut -s -d',' -f"$i")
+        # If both pys & Rs have a value assosciated with them.
         if [ -n "$pys" ] && [ -n "$Rs" ]; then
+            # Compute the difference between them.
             awk "BEGIN {d=$pys - $Rs; d=d*d; d=sqrt(d); if(d > $e) {exit 1}}"
+            # If awk exists with the exit code of 0, then the test passed.
+            # Also, this is intended, hence the shellcheck disable below.
+            # shellcheck disable=2181
             if [ $? -eq 0 ]; then
                 echo "PASSED - $func"
             else
                 echo "FAILED - $func"
                 exit 1
             fi
+            # Increment i, to attempt to compare the next two numbers in
+            # pyv & Rv
             i=$((i + 1))
         else
+            # Otherwise, if pys or Rs has no value assosciated with it,
+            # continue on to the next test.
             break
         fi
     done
