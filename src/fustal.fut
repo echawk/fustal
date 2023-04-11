@@ -51,7 +51,7 @@ entry stderr (xs: []f64) : f64 =
   let denom = f64.sqrt (f64.i64 (length xs)) in
   sd / denom
 
--- desc:
+-- desc: Calculate the covariance between $xs$ and $ys$.
 -- equation: $cov(X, Y) = \frac{1}{n} \sum_{i=1}^n{(x_i - \mu)(y_i - v)}$
 entry cov (xs: []f64) (ys: []f64) : f64 =
   let mu = mean xs in
@@ -79,7 +79,7 @@ entry sample_stderr (xs: []f64) : f64 =
   let denom = f64.sqrt (f64.i64 (length xs)) in
   sd / denom
 
--- desc:
+-- desc: Calculate the sample covariance between $xs$ and $ys$.
 -- equation: $cov(X, Y) = \frac{1}{(n - 1)} \sum_{i=1}^n{(x_i - \mu)(y_i - v)}$
 -- NOTE: this function is equivalent to R's `cov(x,y)`
 entry sample_cov (xs: []f64) (ys: []f64) : f64 =
@@ -88,7 +88,7 @@ entry sample_cov (xs: []f64) (ys: []f64) : f64 =
   let n = f64.i64 (length xs) in
   f64.sum (map2 (\x y -> (x - mu) * (y - v)) xs ys) / (n - 1)
 
--- desc:
+-- desc: Calculate the t statistic for $xs$ when compared against mean $\mu$.
 -- equation: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
 -- link: https://en.wikipedia.org/wiki/Student%27s_t-test#One-sample_t-test
 entry one_sample_t_test (xs: []f64) (mu: f64) : f64 =
@@ -97,7 +97,7 @@ entry one_sample_t_test (xs: []f64) (mu: f64) : f64 =
   let n = (f64.i64 (length xs)) in
   (xbar - mu) / (sd / f64.sqrt n)
 
--- desc:
+-- desc: Calculate the t statistic between $as$ and $bs$.
 -- equation: $t = \frac{\Delta \bar{X}}{s_{\Delta \bar{X}}} = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{{s_{\bar{X_1}}}^2 + {s_{\bar{X_2}}}^2}}$
 -- link: https://en.wikipedia.org/wiki/Welch%27s_t-test
 entry two_sample_t_test (as: []f64) (bs: []f64) : f64 =
@@ -107,7 +107,7 @@ entry two_sample_t_test (as: []f64) (bs: []f64) : f64 =
   let denom = f64.sqrt (sq (sample_stderr as) + sq (sample_stderr bs)) in
   delta_xbar / denom
 
--- desc:
+-- desc: Calculate the pearson correlation coefficient between $xs$ and $ys$.
 -- equation: $\rho_{X,Y} = \frac{cov(X, Y)}{\sigma_X \sigma_Y}$
 -- link: https://en.wikipedia.org/wiki/Pearson_correlation_coefficient
 entry pearson_correlation_coefficient (xs: []f64) (ys: []f64) : f64 =
@@ -116,11 +116,9 @@ entry pearson_correlation_coefficient (xs: []f64) (ys: []f64) : f64 =
   let y_sd = std ys in
   cov_xy / (y_sd * x_sd)
 
--- desc: Calculates the F-Test statistic for a one-way ANOVA, for a matrix $M$.
+-- desc: Calculates the F-Test statistic for a one-way ANOVA for a matrix $M$, where the rows are the different populations.
 -- equation: $F = \frac{\sum_{i=1}^K n_i \frac{(\bar{Y_i} - \bar{Y})^2}{(K - 1)}}{\sum_{i=1}^K\sum_{j=1}^{n_i}\frac{(Y_{ij} - \bar{Y_i})^2}{(N - K)}}$
 -- link: https://en.wikipedia.org/wiki/F-test
--- FIXME: currently does not return the correct value
--- -- NOTE: does seem to return the correct value when comparing to R - see ./test output
 -- TODO: clean up variable names?
 entry f_test (M: [][]f64) : f64 =
   let K = length M in
@@ -154,7 +152,7 @@ entry chi_squared_test (M: [][]i64) : f64 =
        |> map f64.sum
               |> f64.sum
 
--- desc:
+-- desc: Calculates the $\hat{\alpha}$ and $\hat{\beta}$ values for a simple linear regression model for $xs$ and $ys$.
 -- equation: $(\hat{\alpha}, \hat{\beta}) = (\bar{y} - (\hat{\beta} - \bar{x}), \frac{\sum_{i = 1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sum_{i = 1}^n (x_i - \bar{x})^2})$
 -- link: https://en.wikipedia.org/wiki/Simple_linear_regression
 entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
