@@ -1,0 +1,5 @@
+#!/bin/sh
+# Ensure we only test if the library has been built.
+[ -d output ] || exit 1
+
+PYTHONPATH=$PWD/output python -i ./test.py
