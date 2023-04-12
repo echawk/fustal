@@ -128,8 +128,12 @@ entry f_test (M: [][]f64) : f64 =
   let yb_num = map f64.sum M |> f64.sum in
   let yb_den = f64.i64 (map length M |> i64.sum) in
   let yb = yb_num / yb_den in
-  let exp_var = map (\i -> (f64.i64 nV[i]) * ((sq ((ybV[i]) - yb)) / (f64.i64 (K - 1)))) (iota K) |> f64.sum in
-  let f = \i -> f64.sum (map (\yij -> (sq (yij - ybV[i])) / (f64.i64 (N - K))) M[i]) in
+  let exp_var = map (\i -> (f64.i64 nV[i]) * ((sq ((ybV[i]) - yb)) /
+                                              (f64.i64 (K - 1))))
+                    (iota K) |> f64.sum in
+  let f = \i -> f64.sum
+                (map (\yij -> (sq (yij - ybV[i])) /
+                              (f64.i64 (N - K))) M[i]) in
   let une_var = map f (iota K) |> f64.sum in
   exp_var / une_var
 
@@ -147,7 +151,10 @@ entry chi_squared_test (M: [][]i64) : f64 =
   let rowTotals = map f64.sum fM in
   let colTotals = transpose fM |> map f64.sum in
   let obvTotal = f64.sum rowTotals in
-  let expM = map (\rt -> map (\ct -> rt * ct / obvTotal) colTotals) rowTotals in -- (row * col) / n
+  -- (row * col) / n
+  let expM = map (\rt -> map (\ct -> rt * ct / obvTotal)
+                             colTotals)
+                 rowTotals in
   map2 (\or er -> map2 (\ov ev -> (sq (ov - ev)) / ev) or er) fM expM
        |> map f64.sum
               |> f64.sum
@@ -158,7 +165,10 @@ entry chi_squared_test (M: [][]i64) : f64 =
 entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
   let xbar = mean xs in
   let ybar = mean ys in
-  let beta_hat = (map2 (\xi yi -> (xi - xbar) * (yi - ybar)) xs ys |> f64.sum) / (map (\xi -> sq (xi - xbar)) xs |> f64.sum) in
+  let beta_hat = (map2 (\xi yi -> (xi - xbar) * (yi - ybar))
+                       xs ys |> f64.sum) /
+                 (map (\xi -> sq (xi - xbar))
+                      xs |> f64.sum) in
   let alpha_hat = ybar - (beta_hat * xbar) in
   (alpha_hat, beta_hat)
 
