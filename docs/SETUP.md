@@ -61,19 +61,48 @@ Once the library is built, you can run the test suite by simply running:
 ./test
 ```
 
-If all of the tests passed, the word "PASSED" will be printed, otherwise
-it will print "FAILED".
+The output will consist of both the amount of time each version took to run the test
+suite, using the `time` command, as well as whether or not each test passed or failed.
+Tests are considered to have `FAILED` if the difference between the value that FUSTAL
+returns and R returns is greater than **0.00001**.
 
 ## Adding tests to the test suite
 
-Currently this process is far from streamlined. However the rough process is
-as follows:
+Adding a test to the test suite is not particularly difficult, as the previous
+test suite has been revamped to not be dependent on the order of the tests.
 
-1. Implement the test in `test.py`, likely as the very last test.
-2. Implement the test in `test.R`, again, likely as the very last test.
-   * **NOTE:** You will likely want to wrap any numerical value with `as.vector()`.
-3. Run `./test` and see if it passes.
+### Adding a test to `test.py`
 
-I would like to make this setup far more streamlined in the future, with
-the new system allowing for the tests to be printed in any order, since
-presently each test has to be on the exact same line as its counterpart.
+To add a test to `test.py`, generally you only need to add it to one of the
+predefined lists of functions, provided it takes the same arguments that they
+do. Otherwise, if you have to define your own data for the test, you need
+to ensure that your output is in CSV format.
+
+Here is an example print statement:
+```python
+print("py", sanitize(func.__name__), func(data), sep=",")
+```
+
+Where `func` is the new function that you are writing the test for, sanitize is a
+predefined function that removes the string `futhark_entry_` from the beginning of the
+name of the function, and data is your custom data.
+
+### Adding a test to `test.R`
+
+This is often a bit trickier to do than `test.py`, but if it is a built in
+test then it's pretty easy. Generally, you want to coax R into *only* printing
+the values for the test - the easiest way to do this is to wrap all output
+with `as.vector()`.
+
+Example Test in R:
+```R
+"my_new_test"
+as.vector(my_new_test(data))
+```
+
+### Running the suite
+
+Now just run `./test` and see if it passes.
+
+If all goes well, you won't see any tests fail. If you want to see the actual
+results of each library, you can view the file `output/test-output.csv`.
