@@ -40,6 +40,8 @@ fi
 # Main testing code below. Check if there are any significant
 # differences between the numbers that fustal returns vs R.
 
+# TODO: consider rewriting the below code entirely in awk.
+
 # Our value to denote a significant difference between two numbers.
 e=0.00001
 
