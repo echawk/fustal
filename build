@@ -30,6 +30,7 @@ esac
 # TODO: add cleaning step
 [ -d output ] && rm -rf output
 mkdir output
+echo "$FUTHARK_TARGET" >> output/futhark_target
 cp src/* output
 sh gendocs >output/doc.tex 2>/dev/null
 cd output
