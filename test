@@ -10,7 +10,7 @@ test_out=output/test-output.csv
 export PYTHONPATH="$PWD/output"
 echo "Fustal Time"
 echo "-----"
-time ./test.py >"$test_out"
+time ./test.py > "$test_out"
 echo "-----"
 # We have to be a little hacky with R, but
 # the main idea is to keep only the lines
@@ -18,13 +18,13 @@ echo "-----"
 # said lines.
 echo "R Time"
 echo "-----"
-time R --no-save <test.R |
+time R --no-save < test.R |
     grep '^\[1\]' |
     tr -d '\n' |
     sed 's/\[1] "/\nR /g' |
     sed 's/"\[1]//g' |
     tr -s ' ' |
-    tr ' ' ',' >>"$test_out"
+    tr ' ' ',' >> "$test_out"
 
 echo "-----"
 # TODO: consider removing this check from the test suite...
