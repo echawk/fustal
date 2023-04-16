@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# simple script to generate bar graphs comparing the performance
+# of R & fustal.
+
+# NOTE: Because of the output of 'test' I know that the
+# first timing is going to be from fustal and the second
+# will be from R.
+
+[ -d output ] || exit 1
+if [ -e output/plot-data ]; then
+    rm output/plot-data
+else
+    touch output/plot-data
+fi
+
+backend=$(cat output/futhark_target)
+
+numruns=3
+
+for _ in $(seq 1 $numruns); do
+    sh test 2>&1 1> /dev/null |
+        awk '/real/ { print $3 }' |
+        tr -d 's' |
+        tr '\n' ' ' |
+        sed "s/$/\n/" >> output/plot-data
+done
+
+f_avg=$(awk '{sum += $1; n++} END {print sum/n;}' < output/plot-data)
+r_avg=$(awk '{sum += $2; n++} END {print sum/n;}' < output/plot-data)
+
+cat << EOF | R --no-save
+colors <- c("red", "blue")
+values <- c($f_avg, $r_avg)
+labels <- c("FUSTAL ($backend backend)", "R")
+valuesM <- matrix(values, nrow=1, ncol=2, byrow=FALSE)
+
+png(file = "bargraph.png",
+    width=800,
+    height=500)
+barplot(valuesM, main = "Time to run './test', average of $numruns",
+        names.arg = labels,
+        xlab = "Backend",
+        ylab = "Time in Seconds",
+        col = colors,
+        beside = TRUE)
+dev.off()
+EOF
