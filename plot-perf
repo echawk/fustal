@@ -20,7 +20,7 @@ numruns=3
 
 for _ in $(seq 1 $numruns); do
     sh test 2>&1 1> /dev/null |
-        awk '/real/ { print $3 }' |
+        awk '/real/ { print $2 }' |
         tr -d 's' |
         tr '\n' ' ' |
         sed "s/$/\n/" >> output/plot-data

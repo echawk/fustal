@@ -10,7 +10,7 @@ test_out=output/test-output.csv
 export PYTHONPATH="$PWD/output"
 echo "Fustal Time"
 echo "-----"
-time ./test.py > "$test_out"
+python timer.py ./test.py > "$test_out"
 echo "-----"
 # We have to be a little hacky with R, but
 # the main idea is to keep only the lines
@@ -18,7 +18,7 @@ echo "-----"
 # said lines.
 echo "R Time"
 echo "-----"
-time R --no-save < test.R |
+python timer.py R --no-save < test.R |
     grep '^\[1\]' |
     tr -d '\n' |
     sed 's/\[1] "/\nR /g' |
