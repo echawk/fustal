@@ -11,8 +11,6 @@ cat << EOF
 
 EOF
 
-# FIXME: Remove 'arguments' section from docs, since all of that info is encoded in the type signature.
-
 for f in src/*.fut; do
     sed -E -n "/^(-- desc:|entry)/=" "$f" | paste -d',' - - |
           xargs -I{} sed -n "{}p" "$f" | tac |
