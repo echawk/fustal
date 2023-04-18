@@ -2,4 +2,4 @@
 # Ensure we only test if the library has been built.
 [ -d output ] || exit 1
 
-PYTHONPATH=$PWD/output python -i ./test.py
+PYTHONPATH=$PWD/output python -i ./utils/fustal-env.py
