@@ -21,7 +21,7 @@ sqlite3 iris.sqlite3 -cmd "select \"Petal.Width\" from MAIN" ".exit" |
 
 for s in setosa versicolor virginica; do
     sqlite3 iris.sqlite3 -cmd "select \"Sepal.Length\" from MAIN where \"Species\" = \"$s\"" ".exit" |
-          tr '\n' ',' | sed -e "s/^/sepal_length = np.array([/" -e "s/,$/])\n/"
+          tr '\n' ',' | sed -e "s/^/sepal_length_$s = np.array([/" -e "s/,$/])\n/"
 done
 
 rm iris.sqlite3
