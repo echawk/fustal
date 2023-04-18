@@ -32,7 +32,7 @@ esac
 mkdir output
 echo "$FUTHARK_TARGET" >> output/futhark_target
 cp src/* output
-sh gendocs >output/doc.tex 2>/dev/null
+sh ./utils/gendocs >output/doc.tex 2>/dev/null
 cd output
 futhark "$FUTHARK_TARGET" --library fustal.fut
 build_futhark_ffi fustal
