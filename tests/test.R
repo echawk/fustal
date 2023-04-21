@@ -20,3 +20,5 @@ as.vector(anova(aov(Sepal.Length ~ Species, data=iris))$"F value")[1]
 chisq_data <- matrix(c(120, 90, 40, 110, 95, 45), ncol=3, byrow=TRUE)
 "chi_squared_test"
 as.vector(chisq.test(chisq_data)$statistic)
+#"wilcoxon_rank_sum_test"
+#as.vector(wilcox.test(iris$Sepal.Length, iris$Sepal.Width)$statistic)

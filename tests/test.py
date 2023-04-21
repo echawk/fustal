@@ -23,7 +23,7 @@ assert fustal.sample_cov(sepal_length, sepal_length) == fustal.sample_var(sepal_
 print("py", sanitize(fustal.one_sample_t_test.__name__),
       fustal.one_sample_t_test(sepal_length, 6), sep=",")
 
-for func in [fustal.two_sample_t_test, fustal.pearson_correlation_coefficient, fustal.simple_linear_regression]:
+for func in [fustal.two_sample_t_test, fustal.pearson_correlation_coefficient, fustal.simple_linear_regression]: #, fustal.wilcoxon_rank_sum_test]:
     v = func(sepal_length, sepal_width)
     if type(v) is tuple:
         print("py", sanitize(func.__name__), ','.join(map(str, list(v))), sep=",")
