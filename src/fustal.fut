@@ -19,6 +19,8 @@
 
 import "lib/github.com/diku-dk/linalg/linalg"
 
+module linalg_f64 = mk_linalg f64
+
 -- FIXME: Make these functions not depend on floating point values -- have them be defined for all types.
 
 -- desc: Calculate the value of $x$ squared.
@@ -192,4 +194,21 @@ entry wilcoxon_rank_sum_test (xs: []f64) (ys: []f64) : f64 =
             in
   map2 S xs ys |> f64.sum
 
+-- https://en.wikipedia.org/wiki/Two-way_analysis_of_variance
+
+-- https://en.wikipedia.org/wiki/Tukey%27s_range_test
+
 -- link: https://en.wikipedia.org/wiki/Logistic_regression
+
+-- https://towardsdatascience.com/multiple-linear-regression-from-scratch-in-numpy-36a3e8ac8014
+-- https://www.statology.org/multiple-linear-regression-r/
+-- https://www.statology.org/multiple-linear-regression/
+-- https://github.com/diku-dk/linalg
+-- https://brilliant.org/wiki/multivariate-regression/#multiple-regression
+-- B^ = (XT * X)^-1 * (XT*Y)
+entry multiple_linear_regression (xs: [][]f64) (ys: []f64) : [][]f64 =
+  let xsT = transpose xs in
+  let xsTxsI = linalg_f64.matmul xs xsT in
+  let xsTys = linalg_f64.matvecmul_col xsT ys in
+  linalg_f64.matmul xsTxsI xsTys
+  --1.0
