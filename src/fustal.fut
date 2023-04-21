@@ -182,6 +182,7 @@ entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
 -- equation: $U = \sum_{i=1}^n\sum_{j=1}^m S(X_i, Y_j), S(X, Y) = \begin{cases}  1 & X > Y \\ \frac{1}{2} & X = Y\\ 0 & X < Y \end{cases}$
 -- link: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
 -- FIXME: this is the wrong computation? (see wilcox.test() in R)
+-- https://github.com/mirror/r/blob/master/src/library/stats/R/wilcox.test.R#L73
 entry wilcoxon_rank_sum_test (xs: []f64) (ys: []f64) : f64 =
   let S =
     \x y -> if x > y then 1
