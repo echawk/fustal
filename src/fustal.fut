@@ -147,7 +147,7 @@ def Mf64_Mi64 (iM: [][]i64) : [][]f64 =
 
 -- let m = [[120, 90, 40],[110,95,45]] : [][]i64
 -- chi_squared_test(m)
--- desc:
+-- desc: Computes the $\chi^2$ statistic for a matrix $M$, where the rows and columns are different categories.
 -- equation: $\chi^2 = \sum_{i=1}^k\frac{(O_i - E_i)^2}{E_i}$
 -- link: https://en.wikipedia.org/wiki/Chi-squared_test
 entry chi_squared_test (M: [][]i64) : f64 =
