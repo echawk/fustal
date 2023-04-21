@@ -17,6 +17,8 @@
 -- mode, mutlimode
 -- quantiles
 
+import "lib/github.com/diku-dk/linalg/linalg"
+
 -- FIXME: Make these functions not depend on floating point values -- have them be defined for all types.
 
 -- desc: Calculate the value of $x$ squared.
