@@ -31,7 +31,7 @@ esac
 [ -d output ] && rm -rf output
 mkdir output
 echo "$FUTHARK_TARGET" >> output/futhark_target
-cp src/* output
+cp -a src/* output
 sh ./utils/gendocs >output/doc.tex 2>/dev/null
 cd output
 futhark pkg sync
