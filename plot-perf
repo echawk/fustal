@@ -13,7 +13,7 @@ echo "fustal,R" >> output/plot-data
 
 backend=$(cat output/futhark_target)
 
-numruns=3
+numruns=10
 
 for _ in $(seq 1 $numruns); do
     sh test 2>&1 1> /dev/null |
@@ -32,8 +32,8 @@ fsd <- sd(d\$fustal)
 rsd <- sd(d\$R)
 colors <- c("red", "blue")
 values <- c(f_avg, r_avg)
-fl <- paste0("FUSTAL ($backend backend) sd - ", fsd)
-rl <- paste0("R sd - ", rsd)
+fl <- paste0("FUSTAL ($backend backend)\\nsd - ", fsd)
+rl <- paste0("R\\nsd - ", rsd)
 labels <- c(fl, rl)
 valuesM <- matrix(values, nrow=1, ncol=2, byrow=FALSE)
 
