@@ -46,7 +46,7 @@ fi
 
 # Our value to denote a significant difference between two numbers.
 e=0.00001
-
+echo "Pass_or_Fail,function,FUSTAL_percent_change_in_runtime_compared_to_R"
 funcs=$(grep "^py" "$test_out" | cut -d',' -f2)
 for func in $funcs; do
     i=1
@@ -71,10 +71,10 @@ for func in $funcs; do
             # Also, this is intended, hence the shellcheck disable below.
             # shellcheck disable=2181
             if [ $? -eq 0 ]; then
-                delta=$(awk "BEGIN{print $pyt - $Rt}")
-                echo "PASSED - $func, ${delta}s (FUSTAL - R time delta)"
+                percent_decrease=$(awk "BEGIN{print (($pyt - $Rt) / $Rt) * 100}")
+                echo "PASSED,$func,${percent_decrease}"
             else
-                echo "FAILED - $func"
+                echo "FAILED,$func,${percent_decrease}"
                 exit 1
             fi
             # Increment i, to attempt to compare the next two numbers in
