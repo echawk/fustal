@@ -28,9 +28,13 @@ d = read.csv("output/plot-data")
 f_avg <- mean(d\$fustal)
 r_avg <- mean(d\$R)
 
+fsd <- sd(d\$fustal)
+rsd <- sd(d\$R)
 colors <- c("red", "blue")
 values <- c(f_avg, r_avg)
-labels <- c("FUSTAL ($backend backend)", "R")
+fl <- paste0("FUSTAL ($backend backend) sd - ", fsd)
+rl <- paste0("R sd - ", rsd)
+labels <- c(fl, rl)
 valuesM <- matrix(values, nrow=1, ncol=2, byrow=FALSE)
 
 png(file = "bargraph.png",
@@ -43,7 +47,5 @@ barplot(valuesM, main = "Time to run './test', average of $numruns",
         col = colors,
         beside = TRUE)
 dev.off()
-sd(d\$fustal)
-sd(d\$R)
 t.test(d\$fustal, d\$R)
 EOF
