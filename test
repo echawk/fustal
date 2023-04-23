@@ -50,8 +50,8 @@ for func in $funcs; do
     i=1
     # pyv - *py*thon *v*ector
     # Rv - *R* *v*ector
-    pyv="$(grep "py,$func," "$test_out" | cut -d',' -f3-),"
-    Rv="$(grep "R,$func," "$test_out" | cut -d',' -f3-),"
+    pyv="$(grep "py,$func," "$test_out" | cut -d',' -f4-),"
+    Rv="$(grep "R,$func," "$test_out" | cut -d',' -f4-),"
     while true; do
         # pys - *py*thon *s*calar
         # Rs - *R* *s*calar
