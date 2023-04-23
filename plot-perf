@@ -8,12 +8,8 @@
 # will be from R.
 
 [ -d output ] || exit 1
-if [ -e output/plot-data ]; then
-    rm output/plot-data
-else
-    touch output/plot-data
-    echo "fustal,R" >> output/plot-data
-fi
+rm output/plot-data
+echo "fustal,R" >> output/plot-data
 
 backend=$(cat output/futhark_target)
 
@@ -47,5 +43,7 @@ barplot(valuesM, main = "Time to run './test', average of $numruns",
         col = colors,
         beside = TRUE)
 dev.off()
+sd(d\$fustal)
+sd(d\$R)
 t.test(d\$fustal, d\$R)
 EOF
