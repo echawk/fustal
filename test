@@ -52,6 +52,9 @@ for func in $funcs; do
     i=1
     # pyv - *py*thon *v*ector
     # Rv - *R* *v*ector
+    pyt="$(grep "py,$func," "$test_out" | cut -d',' -f3)"
+    Rt="$(grep "R,$func," "$test_out" | cut -d',' -f3)"
+
     pyv="$(grep "py,$func," "$test_out" | cut -d',' -f4-),"
     Rv="$(grep "R,$func," "$test_out" | cut -d',' -f4-),"
     while true; do
@@ -68,7 +71,8 @@ for func in $funcs; do
             # Also, this is intended, hence the shellcheck disable below.
             # shellcheck disable=2181
             if [ $? -eq 0 ]; then
-                echo "PASSED - $func"
+                delta=$(awk "BEGIN{print $pyt - $Rt}")
+                echo "PASSED - $func, ${delta}s (FUSTAL - R time delta)"
             else
                 echo "FAILED - $func"
                 exit 1
