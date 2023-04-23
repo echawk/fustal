@@ -4,13 +4,15 @@
 
 test_out=output/test-output.csv
 
+echo "Backend,Function,Time_in_s,V1,V2,V3,V4" > "$test_out"
+
 # Run our two separate programs, each produces
 # a CSV of their output with enough information
 # that we can discern between the two.
 export PYTHONPATH="$PWD/output"
 echo "Fustal Time"
 echo "-----"
-python utils/timer.py ./tests/test.py > "$test_out"
+python utils/timer.py ./tests/test.py >> "$test_out"
 echo "-----"
 # We have to be a little hacky with R, but
 # the main idea is to keep only the lines
