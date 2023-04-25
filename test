@@ -45,6 +45,7 @@ fi
 # TODO: consider rewriting the below code entirely in awk.
 
 # Our value to denote a significant difference between two numbers.
+{
 e=0.00001
 echo "pass_or_fail,function,fustal_percent_change_in_runtime_compared_to_r,fustal_time_in_s,r_time_in_s"
 funcs=$(grep "^py" "$test_out" | cut -d',' -f2)
@@ -75,7 +76,7 @@ for func in $funcs; do
                 echo "PASSED,$func,${percent_decrease},$pyt,$Rt"
             else
                 echo "FAILED,$func,${percent_decrease},$pyt,$Rt"
-                exit 1
+                f=1
             fi
             # Increment i, to attempt to compare the next two numbers in
             # pyv & Rv
@@ -87,3 +88,5 @@ for func in $funcs; do
         fi
     done
 done
+} > output/test-results.csv; cat output/test-results.csv
+exit ${f:-0}
