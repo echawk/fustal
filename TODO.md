@@ -9,9 +9,9 @@ In no particular order:
 - [x] Decide on a License, likey MIT/ISC/BSD.
 - [x] Setup a system for docs generation (Java Docs style?).
     - [ ] Eventually move to using Futhark's built in doc generator
-- [ ] Add a `setup.py` script to allow for installing via python.
+- [ ] Add a `setup.py` script to allow for installing & building via python.
     - [ ] Consider restructuring the folder structure to allow this library to be easily imported into other futhark programs.
 - [ ] Figure out how to keep CI from downloading pip pkgs every run
-- [ ] Figure out how to keep CI from downloading futhark every run
-    - [ ] Create a custom github action to setup futhark
+- [x] Figure out how to keep CI from downloading futhark every run
+    ~~- [ ] Create a custom github action to setup futhark~~
 - [ ] Figure out how to have CI automatically publish docs
