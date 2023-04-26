@@ -143,7 +143,9 @@ entry f_test (M: [][]f64) : f64 =
 
 --desc: Convert i64 matrices into f64 matrices.
 def Mf64_Mi64 (iM: [][]i64) : [][]f64 =
-  map (\r -> (map (\v -> f64.i64 v)) r) iM
+  map (\r ->
+         (map (\v -> f64.i64 v)) r)
+      iM
 
 -- let m = [[120, 90, 40],[110,95,45]] : [][]i64
 -- chi_squared_test(m)
@@ -159,7 +161,10 @@ entry chi_squared_test (M: [][]i64) : f64 =
   let expM = map (\rt -> map (\ct -> rt * ct / obvTotal)
                              colTotals)
                  rowTotals in
-  map2 (\or er -> map2 (\ov ev -> (sq (ov - ev)) / ev) or er) fM expM
+  map2 (\or er ->
+          map2 (\ov ev -> (sq (ov - ev)) / ev)
+               or er)
+       fM expM
        |> map f64.sum
               |> f64.sum
 
