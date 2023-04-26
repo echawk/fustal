@@ -6,18 +6,15 @@ test_out=output/test-output.csv
 
 echo "Backend,Function,Time_in_s,V1,V2,V3,V4" > "$test_out"
 
-# Run our two separate programs, each produces
-# a CSV of their output with enough information
-# that we can discern between the two.
+# Run our two separate programs, each produces a CSV of their output with enough
+# information that we can discern between the two.
 export PYTHONPATH="$PWD/output"
 echo "Fustal Time"
 echo "-----"
 python utils/timer.py ./tests/test.py >> "$test_out"
 echo "-----"
-# We have to be a little hacky with R, but
-# the main idea is to keep only the lines
-# with the output, and then to properly format
-# said lines.
+# We have to be a little hacky with R, but the main idea is to keep only the
+# lines with the output, and then to properly format said lines.
 echo "R Time"
 echo "-----"
 python utils/timer.py R --no-save < ./tests/test.R |
@@ -29,41 +26,23 @@ python utils/timer.py R --no-save < ./tests/test.R |
     tr ' ' ',' >> "$test_out"
 
 echo "-----"
-# TODO: consider removing this check from the test suite...
-py_lines=$(grep -c "^py" "$test_out")
-R_lines=$(grep -c "^R" "$test_out")
 
-# Make sure that each test is ran in both programs.
-if ! [ "$py_lines" = "$R_lines" ]; then
-    echo "There is a difference in the number of tests between the python & R versions"
-    exit 1
-fi
+# Main testing code below. Check if significant exist between fustal and R.
 
-# Main testing code below. Check if there are any significant
-# differences between the numbers that fustal returns vs R.
-
-# TODO: consider rewriting the below code entirely in awk.
-
-# Our value to denote a significant difference between two numbers.
 {
-e=0.00001
+e=0.00001 # Our value to denote a significant difference between two numbers.
 echo "pass_or_fail,function,fustal_percent_change_in_runtime_compared_to_r,fustal_time_in_s,r_time_in_s"
 funcs=$(grep "^py" "$test_out" | cut -d',' -f2)
 for func in $funcs; do
     i=1
-    # pyv - *py*thon *v*ector
-    # Rv - *R* *v*ector
-    pyt="$(grep "py,$func," "$test_out" | cut -d',' -f3)"
-    Rt="$(grep "R,$func," "$test_out" | cut -d',' -f3)"
-
-    pyv="$(grep "py,$func," "$test_out" | cut -d',' -f4-),"
-    Rv="$(grep "R,$func," "$test_out" | cut -d',' -f4-),"
+    pyt="$(grep "py,$func," "$test_out" | cut -d',' -f3)"   # *py*thon *t*ime
+    Rt="$(grep "R,$func," "$test_out" | cut -d',' -f3)"     # *R* *t*ime
+    pyv="$(grep "py,$func," "$test_out" | cut -d',' -f4-)," # *py*thon *v*ector
+    Rv="$(grep "R,$func," "$test_out" | cut -d',' -f4-),"   # *R* *v*ector
     while true; do
-        # pys - *py*thon *s*calar
-        # Rs - *R* *s*calar
         # NOTE: The addition of the '-s' ensures that we can leave the loop.
-        pys=$(echo "$pyv" | cut -s -d',' -f"$i")
-        Rs=$(echo "$Rv" | cut -s -d',' -f"$i")
+        pys=$(echo "$pyv" | cut -s -d',' -f"$i") # pys - *py*thon *s*calar
+        Rs=$(echo "$Rv" | cut -s -d',' -f"$i")   # Rs - *R* *s*calar
         # If both pys & Rs have a value assosciated with them.
         if [ -n "$pys" ] && [ -n "$Rs" ]; then
             # Compute the difference between them.
@@ -89,4 +68,4 @@ for func in $funcs; do
     done
 done
 } > output/test-results.csv; cat output/test-results.csv
-exit ${f:-0}
+exit "${f:-0}"

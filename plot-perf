@@ -17,8 +17,7 @@ numruns=10
 
 for _ in $(seq 1 $numruns); do
     sh test 2>&1 1> /dev/null |
-        awk '/real/ { print $2 }' |
-        tr -d 's' |
+        awk '/real/ { gsub("s", ""); print $2 }' |
         tr '\n' ',' |
         sed "s/,$/\n/" >> output/plot-data
 done
