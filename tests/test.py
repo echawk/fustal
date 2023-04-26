@@ -26,11 +26,7 @@ def t(func, args):
     else:
         srv1 = rv[1]
 
-    print("py",
-          func,
-          "{:f}".format(rv[0]),
-          srv1,
-          sep=",")
+    print("py", func, "{:f}".format(rv[0]), srv1, sep=",")
 
 # funcs not printed: fustal.stderr, fustal.mean, fustal.var, fustal.std
 for func in ["sample_var", "sample_std", "sample_stderr"]:
@@ -55,4 +51,3 @@ t("f_test", ["sepal_length_matr"])
 # FIXME: try using some built in data from R for this
 chisq_data = np.matrix([[120, 90, 40], [110, 95, 45]])
 t("chi_squared_test", ["chisq_data"])
-
