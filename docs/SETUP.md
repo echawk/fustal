@@ -68,36 +68,37 @@ returns and R returns is greater than **0.00001**.
 
 ## Adding tests to the test suite
 
-Adding a test to the test suite is not particularly difficult, as the previous
-test suite has been revamped to not be dependent on the order of the tests.
+Adding a test to the test suite is not particularly difficult, as much of the
+process has been automated. It should be a 1 line change to the python code
+and a 2 line change for the R code. Below will illustrate how to add a new
+test, called **my_new_func** to each of the respective files.
 
 ### Adding a test to `test.py`
 
-To add a test to `test.py`, generally you only need to add it to one of the
+To add the test to `test.py`, generally you only need to add it to one of the
 predefined lists of functions, provided it takes the same arguments that they
-do. Otherwise, if you have to define your own data for the test, you need
-to ensure that your output is in CSV format.
+do. Otherwise, if you have to define your own data for the test, all that is
+needed is to make your own statement using the `t` function.
 
-Here is an example print statement:
+Here is an example statement:
 ```python
-print("py", sanitize(func.__name__), func(data), sep=",")
+t("my_new_func", ["data"])
 ```
 
-Where `func` is the new function that you are writing the test for, sanitize is a
-predefined function that removes the string `futhark_entry_` from the beginning of the
-name of the function, and data is your custom data.
+Where `my_new_func` is the new function that you are writing the test for,
+and `data` is the data that the function will use for testing.
 
 ### Adding a test to `test.R`
 
-This is often a bit trickier to do than `test.py`, but if it is a built in
+This is a bit trickier to do than `test.py`, but if it is a built in
 test then it's pretty easy. Generally, you want to coax R into *only* printing
 the values for the test - the easiest way to do this is to wrap all output
 with `as.vector()`.
 
 Example Test in R:
 ```R
-"my_new_test"
-as.vector(my_new_test(data))
+"my_new_func"
+timer(quote(as.vector(my_new_test(data))))
 ```
 
 ### Running the suite
