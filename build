@@ -32,9 +32,7 @@ futhark pkg sync
 futhark "$FUTHARK_TARGET" --library fustal.fut
 build_futhark_ffi fustal
 # Try to build both PDF and HTML versions of the documentation.
-if command -v latexmk && [ "$BUILD_DOCS_PDF" = 1 ]; then
+if command -v latexmk && command -v make4ht && [ "$BUILD_DOCS" = 1 ]; then
     latexmk -pdf doc.tex
-fi
-if command -v make4ht && [ "$BUILD_DOCS_HTML" = 1 ]; then
     make4ht doc.tex "mathjax"
 fi
