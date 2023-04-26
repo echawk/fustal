@@ -2,17 +2,11 @@
 
 # Check environment for needed software.
 
-# https://github.com/diku-dk/futhark
-if ! command -v futhark; then
-    echo "[ERR]: 'futhark' is not available on this system."
-    echo "-----: Can fix by installing futhark."
-fi
-
-# https://github.com/pepijndevos/futhark-pycffi/
-if ! command -v build_futhark_ffi; then
-    echo "[ERR]: 'build_futhark_ffi' is not available on this system."
-    echo "-----: CMD: 'pip install futhark-ffi'"
-fi
+for cmd in futhark build_futhark_ffi; do
+    if ! command -v "$cmd"; then
+        echo "[ERR]: $cmd is not available on this system."; exit 1
+    fi
+done
 
 FUTHARK_TARGET="${FUTHARK_TARGET:-c}"
 
