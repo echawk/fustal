@@ -27,7 +27,7 @@ python utils/timer.py R --no-save < ./tests/test.R |
 
 echo "-----"
 
-# Main testing code below. Check if significant exist between fustal and R.
+# Main testing code below. Check if differences exist between fustal and R.
 
 {
 e=0.00001 # Our value to denote a significant difference between two numbers.
