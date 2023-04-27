@@ -1,50 +1,34 @@
-#!/bin/sh
+#!/usr/bin/Rscript
 
-# simple script to generate bar graphs comparing the performance
-# of R & fustal.
+# simple script to generate bar graphs comparing the performance of R & fustal.
 
-# NOTE: Because of the output of 'test' I know that the
-# first timing is going to be from fustal and the second
-# will be from R.
+mkbargraph <- function(func_name, fv, rv) {
 
-[ -d output ] || exit 1
-rm output/plot-data
-echo "fustal,R" >> output/plot-data
+    fn <- paste0("output/bargraph-", func_name, ".png")
+    plot_title <- paste0("Time to run ", func_name, " in seconds (lower is better)")
+    labels <- c("FUSTAL", "R")
+    colors <- c("red", "blue")
 
-backend=$(cat output/futhark_target)
+    values <- c(fv, rv)
+    valuesM <- matrix(values, nrow=1, ncol=2, byrow=FALSE)
+    png(file = fn,
+        width = 800,
+        height = 500)
+    barplot(valuesM,
+            main = plot_title,
+            names.arg = labels,
+            xlab = "Backend",
+            ylab = "Time in Seconds",
+            col = colors,
+            beside = TRUE)
+    dev.off()
+}
 
-numruns=10
+df = data.frame(read.csv("output/test-results.csv"))
+df = df[!duplicated(df), ]
 
-for _ in $(seq 1 $numruns); do
-    sh test 2>&1 1> /dev/null |
-        awk '/real/ { gsub("s", ""); print $2 }' |
-        tr '\n' ',' |
-        sed "s/,$/\n/" >> output/plot-data
-done
-
-cat << EOF | R --no-save
-d = read.csv("output/plot-data")
-f_avg <- mean(d\$fustal)
-r_avg <- mean(d\$R)
-
-fsd <- sd(d\$fustal)
-rsd <- sd(d\$R)
-colors <- c("red", "blue")
-values <- c(f_avg, r_avg)
-fl <- paste0("FUSTAL ($backend backend)\\nsd - ", fsd)
-rl <- paste0("R\\nsd - ", rsd)
-labels <- c(fl, rl)
-valuesM <- matrix(values, nrow=1, ncol=2, byrow=FALSE)
-
-png(file = "bargraph.png",
-    width=800,
-    height=500)
-barplot(valuesM, main = "Time to run './test', average of $numruns",
-        names.arg = labels,
-        xlab = "Backend",
-        ylab = "Time in Seconds",
-        col = colors,
-        beside = TRUE)
-dev.off()
-t.test(d\$fustal, d\$R)
-EOF
+for (f in df$func) {
+    fv <- df$fustal_time_in_s[df["func"] == f]
+    rv <- df$r_time_in_s[df["func"] == f]
+    mkbargraph(f, fv, rv)
+}
