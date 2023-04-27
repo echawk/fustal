@@ -31,7 +31,7 @@ echo "-----"
 
 {
 e=0.00001 # Our value to denote a significant difference between two numbers.
-echo "pass_or_fail,function,fustal_percent_change_in_runtime_compared_to_r,fustal_time_in_s,r_time_in_s"
+echo "pass_or_fail,func,fustal_percent_change_in_runtime_compared_to_r,fustal_time_in_s,r_time_in_s"
 funcs=$(grep "^py" "$test_out" | cut -d',' -f2)
 for func in $funcs; do
     i=1
