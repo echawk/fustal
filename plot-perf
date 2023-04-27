@@ -11,9 +11,7 @@ mkbargraph <- function(func_name, fv, rv) {
 
     values <- c(fv, rv)
     valuesM <- matrix(values, nrow=1, ncol=2, byrow=FALSE)
-    png(file = fn,
-        width = 800,
-        height = 500)
+    png(file = fn, width = 800, height = 500)
     barplot(valuesM,
             main = plot_title,
             names.arg = labels,
