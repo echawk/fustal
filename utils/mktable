@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+
+import csv
+
+print("""\\documentclass{article}
+\\usepackage[a4paper,margin=1in,landscape]{geometry}
+\\begin{document}
+
+\\begin{Huge}
+
+\\begin{table}[]
+\\begin{tabular}{c|ccc}""")
+
+def print_row(row_dict):
+    f_time_fmtd = "{0:.{1}e}".format(float(row_dict["fustal_time_in_s"]), 3)
+    r_time_fmtd = "{0:.{1}e}".format(float(row_dict["r_time_in_s"]), 3)
+    print("\\textit{" + row_dict["func"].replace("_", "\\_") + "}", " & ",
+          row_dict["fustal_percent_change_in_runtime_compared_to_r"], " & ",
+          f_time_fmtd, " & ", r_time_fmtd, " \\\\")
+
+def print_fieldnames(lst_fn):
+    l = [(lambda s: "\\textbf{" + s.replace("_", "\\_") + "}")(f) for f in lst_fn]
+    print(" & ".join(l) + "\\\\ \\hline")
+
+with open('output/test-results.csv', newline='') as csvfile:
+    reader = csv.DictReader(csvfile)
+    assert reader.fieldnames != None
+    print_fieldnames(reader.fieldnames[1:])
+    for row in reader:
+        print_row(row)
+
+print("""\\end{tabular}
+\\end{table}
+\\end{Huge}
+\\end{document}""")
