@@ -14,5 +14,5 @@ In no particular order:
     - [ ] Consider restructuring the folder structure to allow this library to be easily imported into other futhark programs.
 - [ ] Figure out how to keep CI from downloading pip pkgs every run
 - [x] Figure out how to keep CI from downloading futhark every run
-    ~~- [ ] Create a custom github action to setup futhark~~
+    - [ ] ~~Create a custom github action to setup futhark~~
 - [ ] Figure out how to have CI automatically publish docs
