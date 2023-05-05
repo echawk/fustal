@@ -45,9 +45,6 @@ sepal_length_virginica = np.array([6.3,5.8,7.1,6.3,6.5,7.6,4.9,7.3,6.7,7.2,6.5,6
 sepal_length_matr = np.matrix([sepal_length_setosa, sepal_length_virginica, sepal_length_versicolor])
 t("f_test", ["sepal_length_matr"])
 
-# TODO: see why this is wrong?
-#assert fustal.f_test(sepal_matr_setosa_virginica) == (lambda x: x * x)(fustal.two_sample_t_test(sepal_length_setosa, sepal_length_virginica))
-
 # FIXME: try using some built in data from R for this
 chisq_data = np.matrix([[120, 90, 40], [110, 95, 45]])
 t("chi_squared_test", ["chisq_data"])
