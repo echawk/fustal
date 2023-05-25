@@ -13,12 +13,12 @@ FUTHARK_TARGET="${FUTHARK_TARGET:-c}"
 BUILD_DOCS="${BUILD_DOCS:-0}"
 
 case $FUTHARK_TARGET in
-cuda)
-    for l in cuda cudart; do
-        export CFLAGS="$CFLAGS $(pkg-config --cflags $l)"
-        export CFLAGS="$CFLAGS $(pkg-config --libs $l)"
-    done
-    ;;
+    cuda)
+        for l in cuda cudart; do
+            export CFLAGS="$CFLAGS $(pkg-config --cflags $l)"
+            export CFLAGS="$CFLAGS $(pkg-config --libs $l)"
+        done
+        ;;
 esac
 
 # TODO: add cleaning step
@@ -26,7 +26,7 @@ esac
 mkdir output
 echo "$FUTHARK_TARGET" >> output/futhark_target
 cp -a src/* output
-sh ./utils/gendocs >output/doc.tex 2>/dev/null
+sh ./utils/gendocs > output/doc.tex 2> /dev/null
 cd output
 futhark pkg sync
 futhark "$FUTHARK_TARGET" --library fustal.fut
