@@ -28,13 +28,15 @@ Enter into the root of the directory, and simply run:
 You can customize the build to a limited degree as well.
 
 For example, the following code will build a CUDA version of the
-library as well as build the PDF version of the documentation:
+library as well as build the PDF & HTML versions of the documentation:
 
 ```sh
-FUTHARK_TARGET=cuda BUILD_DOCS_PDF=1 ./build
+FUTHARK_TARGET=cuda BUILD_DOCS=1 ./build
 ```
 
 **NOTE:** Building the PDF documentation requires `latexmk` to be present on your system.
+
+**NOTE:** Building the HTML documentation requires `make4ht` to be available on your system.
 
 Valid `FUTHARK_TARGET`s:
 
@@ -44,14 +46,6 @@ Valid `FUTHARK_TARGET`s:
 * cuda
 
 **NOTE:** `ispc` is *not* a valid target, as futhark-ffi does not support it yet.
-
-To build the HTML version of the docs, run the following instead:
-
-```sh
-BUILD_DOCS_HTML=1 ./build
-```
-
-**NOTE:** This requires `make4ht` to be available on your system.
 
 # Testing the library
 
