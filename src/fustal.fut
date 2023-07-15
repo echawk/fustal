@@ -17,10 +17,9 @@
 -- mode, mutlimode
 -- quantiles
 
--- FIXME: linalg upstream is broken due to the use of 'flatten_to'.
--- import "lib/github.com/diku-dk/linalg/linalg"
+import "lib/github.com/diku-dk/linalg/linalg"
 
--- module linalg_f64 = mk_linalg f64
+module linalg_f64 = mk_linalg f64
 
 -- FIXME: Make these functions not depend on floating point values -- have them be defined for all types.
 
@@ -215,9 +214,9 @@ entry wilcoxon_rank_sum_test (xs: []f64) (ys: []f64) : f64 =
 
 -- let xs = [[10, 20],[20, 0]] : [][]f64
 -- let ys = [50, 20] : []f64
--- entry multiple_linear_regression (xs: [][]f64) (ys: []f64) : [][]f64 =
---   let xsT = transpose xs in
---   let xsTxsI = linalg_f64.matmul xsT xs |> linalg_f64.inv in
---   let xsTys = linalg_f64.matvecmul_col xsT ys in
---   linalg_f64.matmul xsTxsI xsTys
+entry multiple_linear_regression (xs: [][]f64) (ys: []f64) : [][]f64 =
+  let xsT = transpose xs in
+  let xsTxsI = linalg_f64.matmul xsT xs |> linalg_f64.inv in
+  let xsTys = linalg_f64.matvecmul_col xsT ys in
+  linalg_f64.matmul xsTxsI xsTys
   --1.0
