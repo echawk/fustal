@@ -4,7 +4,8 @@
 
 for cmd in futhark build_futhark_ffi; do
     if ! command -v "$cmd"; then
-        echo "[ERR]: $cmd is not available on this system."; exit 1
+        echo "[ERR]: $cmd is not available on this system."
+        exit 1
     fi
 done
 
@@ -23,7 +24,7 @@ esac
 
 # TODO: add cleaning step
 [ -d output ] && rm -rf output
-mkdir output
+mkdir -p output
 echo "$FUTHARK_TARGET" >> output/futhark_target
 cp -a src/* output
 sh ./utils/gendocs > output/doc.tex 2> /dev/null
