@@ -31,7 +31,12 @@ sh ./utils/gendocs > output/doc.tex 2> /dev/null
 cd output
 futhark pkg sync
 futhark "$FUTHARK_TARGET" --library fustal.fut
+
+# build_futhark_ffi only builds the python version of the .so,
+# hence the need for the other command.
 build_futhark_ffi fustal
+"${CC:-cc}" -shared -fPIC fustal.c -o fustal.so
+
 # Try to build both PDF and HTML versions of the documentation.
 if command -v latexmk && command -v make4ht && [ "$BUILD_DOCS" = 1 ]; then
     latexmk -pdf doc.tex
