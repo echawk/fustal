@@ -27,7 +27,6 @@ esac
 mkdir -p output
 echo "$FUTHARK_TARGET" >> output/futhark_target
 cp -a src/* output
-sh ./utils/gendocs > output/doc.tex 2> /dev/null
 cd output
 futhark pkg sync
 futhark "$FUTHARK_TARGET" --library fustal.fut
@@ -38,7 +37,8 @@ build_futhark_ffi fustal
 "${CC:-cc}" -shared -fPIC fustal.c -o fustal.so
 
 # Try to build both PDF and HTML versions of the documentation.
-if command -v latexmk && command -v make4ht && [ "$BUILD_DOCS" = 1 ]; then
+if command -v emacs && command -v latexmk && command -v make4ht && [ "$BUILD_DOCS" = 1 ]; then
+    ./utils/gendocs.el src/fustal.fut 2> output/doc.tex 2> /dev/null
     latexmk -pdf doc.tex
     make4ht doc.tex "mathjax"
 fi
