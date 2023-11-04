@@ -38,7 +38,7 @@ build_futhark_ffi fustal
 
 # Try to build both PDF and HTML versions of the documentation.
 if command -v emacs && command -v latexmk && command -v make4ht && [ "$BUILD_DOCS" = 1 ]; then
-    ./utils/gendocs.el src/fustal.fut 2> output/doc.tex 2> /dev/null
+    ../utils/gendocs.el ../src/fustal.fut 2> doc.tex
     latexmk -pdf doc.tex
     make4ht doc.tex "mathjax"
 fi
