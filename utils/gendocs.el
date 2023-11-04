@@ -22,9 +22,9 @@
 
    (replace-regexp-in-region
     (rx bol "entry" (1+ " ") (group-n 1 (1+ (not " "))) (1+ " ") (group-n 2 (1+ any)) "=")
-    "\n\\\\divider\n
-\\\\noindent\nFunction Name: \\\\begin{verbatim} \\1 \\\\end{verbatim}\n
-\\\\noindent\nFunction Type Signature: \\\\begin{verbatim} \\2 \\\\end{verbatim}\n")
+"\\\\noindent\nFunction Name: \\\\begin{verbatim} \\1 \\\\end{verbatim}\n
+\\\\noindent\nFunction Type Signature: \\\\begin{verbatim} \\2 \\\\end{verbatim}\n
+\\\\divider\n")
 
    (delete-matching-lines (rx bol "--"))
    (buffer-substring-no-properties (point-min) (point-max))))
