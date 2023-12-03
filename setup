@@ -1,6 +1,11 @@
 #!/bin/sh -ex
 
-FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-linux-x86_64.tar.xz"
+case "$(uname)"
+    Linux) host=linux;;
+    Darwin) host=macos;;
+esac
+
+FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-$host-x86_64.tar.xz"
 
 # Setup futhark
 mkdir -p .futhark
