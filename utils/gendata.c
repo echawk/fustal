@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef MAX_ITERS
 #define MAX_ITERS 5E5
+#endif
 #define ROWS 3
 
 int main() {
