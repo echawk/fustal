@@ -37,8 +37,8 @@ build_futhark_ffi fustal
 "${CC:-cc}" -shared -fPIC fustal.c -o fustal.so
 
 # Try to build both PDF and HTML versions of the documentation.
-if command -v emacs && command -v latexmk && command -v make4ht && [ "$BUILD_DOCS" = 1 ]; then
+if command -v emacs && [ "$BUILD_DOCS" = 1 ]; then
     ../utils/gendocs.el ../src/fustal.fut 2> doc.tex
-    latexmk -pdf doc.tex
-    make4ht doc.tex "mathjax"
+    command -v latexmk && latexmk -pdf doc.tex
+    command -v make4ht && make4ht doc.tex "mathjax"
 fi
