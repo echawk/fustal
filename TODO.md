@@ -4,6 +4,7 @@ In no particular order:
 - [x] Write SETUP.md under docs/
 - [x] Write initial test suite infrastructure.
     - [ ] Integrate `test.R` & `test.py`
+        - [ ] Refactor `test.R` & `test.py` to use a csv file as the argument
     - [ ] Come up with a better system than the shell script.
     - [ ] Add futhark specific tests (pure performance benchmarks, as opposed to accuracy benchmarks).
 - [x] Decide on a License, likey MIT/ISC/BSD.
