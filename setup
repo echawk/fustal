@@ -1,6 +1,6 @@
 #!/bin/sh -ex
 
-case "$(uname)"
+case "$(uname)" in
     Linux) host=linux;;
     Darwin) host=macos;;
 esac
@@ -24,7 +24,7 @@ if ! [ -e .venv ]; then
     python3 -m venv .venv
 fi
 . .venv/bin/activate
-pip install futhark-ffi
+pip install -r requirements.txt
 
 cat > .env << EOF
 export PATH="$PWD/.futhark/futhark-nightly-linux-x86_64/bin/:$PATH"
