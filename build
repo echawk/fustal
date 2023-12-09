@@ -34,7 +34,7 @@ futhark "$FUTHARK_TARGET" --library fustal.fut
 # build_futhark_ffi only builds the python version of the .so,
 # hence the need for the other command.
 build_futhark_ffi fustal
-"${CC:-cc}" -shared -fPIC fustal.c -o fustal.so
+"${CC:-cc}" $CFLAGS -shared -fPIC fustal.c -o fustal.so
 
 # Try to build both PDF and HTML versions of the documentation.
 if command -v emacs && [ "$BUILD_DOCS" = 1 ]; then
