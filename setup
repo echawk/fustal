@@ -12,7 +12,7 @@ FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/fu
 mkdir -p .futhark
 if [ -e .futhark ]; then
     cd .futhark
-    file="$(echo "$FUTHARK_TARBALL" | rev | cut -d'/' -f1 | rev)"
+    file="$(basename "$FUTHARK_TARBALL")"
     if ! [ -e "$file" ]; then
         curl -LO "$FUTHARK_TARBALL"
     fi
