@@ -1,11 +1,12 @@
 #!/bin/sh -ex
 
 case "$(uname)" in
-    Linux) host=linux;;
-    Darwin) host=macos;;
+    Linux)  host=linux   ext=tar.xz;;
+    Darwin) host=macos   ext=tar.xz;;
+    MINGW*) host=windows ext=zip;;
 esac
 
-FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-$host-x86_64.tar.xz"
+FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-$host-x86_64.$ext"
 
 # Setup futhark
 mkdir -p .futhark
@@ -15,7 +16,10 @@ if [ -e .futhark ]; then
     if ! [ -e "$file" ]; then
         curl -LO "$FUTHARK_TARBALL"
     fi
-    tar xvf "$file"
+    case $ext in
+        tar.xz) tar xvf "$file";;
+        zip)    unzip "$file";;
+    esac
     cd "$OLDPWD"
 fi
 
