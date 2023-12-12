@@ -25,7 +25,15 @@ fi
 
 # Setup Python
 if ! [ -e .venv ]; then
-    python3 -m venv .venv
+    if command -v python3; then
+        pyexec=python3
+    elif command -v python; then
+        pyexec=python
+    else
+        echo "Need a valid python (v3) executable!"
+        exit 1
+    fi
+    $pyexec -m venv .venv
 fi
 . .venv/bin/activate
 pip install -r requirements.txt
