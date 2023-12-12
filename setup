@@ -52,9 +52,17 @@ case $host in
         ;;
 esac
 
+case $host in
+    windows) venvdir=.venv/Scripts/ ;;
+    *)       venvdir=.venv/bin/ ;;
+esac
+
 cat > .env << EOF
-export PATH="$PWD/.futhark/futhark-nightly-linux-x86_64/bin/:$PATH"
-. .venv/bin/activate
+export PATH="\$PATH:$PWD/.futhark/futhark-nightly-linux-x86_64/bin/"
+if [ -e $PWD/.w64devkit ]; then
+    export PATH="\$PATH:$PWD/.w64devkit/w64devkit/bin/"
+fi
+. ${venvdir}activate
 EOF
 
 cat << EOF
