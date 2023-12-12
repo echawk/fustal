@@ -35,7 +35,13 @@ if ! [ -e .venv ]; then
     fi
     $pyexec -m venv .venv
 fi
-. .venv/bin/activate
+
+case $host in
+    windows) venvdir=.venv/Scripts/ ;;
+    *)       venvdir=.venv/bin/ ;;
+esac
+
+. ${venvdir}activate
 pip install -r requirements.txt
 
 # Setup gcc on Windows
@@ -50,11 +56,6 @@ case $host in
             unzip "$(basename "$W64DEVKIT_TARBALL")"
         fi
         ;;
-esac
-
-case $host in
-    windows) venvdir=.venv/Scripts/ ;;
-    *)       venvdir=.venv/bin/ ;;
 esac
 
 cat > .env << EOF
