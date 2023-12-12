@@ -20,6 +20,9 @@ case $FUTHARK_TARGET in
             export CFLAGS="$CFLAGS $(pkg-config --libs $l)"
         done
         ;;
+    multicore)
+        export CFLAGS="$CFLAGS -lpthread"
+        ;;
 esac
 
 # TODO: add cleaning step
