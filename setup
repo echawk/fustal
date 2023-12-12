@@ -38,6 +38,20 @@ fi
 . .venv/bin/activate
 pip install -r requirements.txt
 
+# Setup gcc on Windows
+case $host in
+    MINGW)
+        mkdir -p .w64devkit
+        if [ -e .w64devkit ]; then
+            cd .w64devkit
+            W64DEVKIT_VERSION=1.21.0
+            W64DEVKIT_TARBALL="https://github.com/skeeto/w64devkit/releases/download/v${W64DEVKIT_VERSION}/w64-devkit-${W64DEVKIT_VERSION}.zip"
+            curl -LO "$W64DEVKIT_TARBALL"
+            unzip "$(basename "$W64DEVKIT_TARBALL")"
+        fi
+        ;;
+esac
+
 cat > .env << EOF
 export PATH="$PWD/.futhark/futhark-nightly-linux-x86_64/bin/:$PATH"
 . .venv/bin/activate
