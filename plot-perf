@@ -1,10 +1,10 @@
 #!/usr/bin/Rscript
 
-# simple script to generate bar graphs comparing the performance of R & fustal.
+## simple script to generate bar graphs comparing the performance of R & fustal.
 
+setwd("output")
 mkbargraph <- function(func_name, fv, rv) {
-
-    fn <- paste0("output/bargraph-", func_name, ".png")
+    fn <- paste0("bargraph-", func_name, ".png")
     plot_title <- paste0("Time to run ", func_name, " in seconds (lower is better)")
     labels <- c("FUSTAL", "R")
     colors <- c("red", "blue")
@@ -22,11 +22,21 @@ mkbargraph <- function(func_name, fv, rv) {
     dev.off()
 }
 
-df = data.frame(read.csv("output/test-results.csv"))
+df = data.frame(read.csv("test-results.csv"))
 df = df[!duplicated(df), ]
+
+result_tex <- "plot-perf-results.tex"
+write(
+    "\\documentclass{article}
+\\usepackage{graphicx}
+\\begin{document}",
+file=result_tex)
 
 for (f in df$func) {
     fv <- df$fustal_time_in_s[df["func"] == f]
     rv <- df$r_time_in_s[df["func"] == f]
     mkbargraph(f, fv, rv)
+    write(paste0("\\includegraphics[width=\\textwidth]{bargraph-", f, ".png}"),
+          file=result_tex, append=TRUE)
 }
+write("\\end{document}", result_tex, append=TRUE)
