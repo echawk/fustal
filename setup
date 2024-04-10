@@ -1,9 +1,9 @@
 #!/bin/sh -ex
 
 case "$(uname)" in
-    Linux)  host=linux   ext=tar.xz;;
-    Darwin) host=macos   ext=tar.xz;;
-    MINGW*) host=windows ext=zip;;
+    Linux)  host=linux   ext=tar.xz ;;
+    Darwin) host=macos   ext=tar.xz ;;
+    MINGW*) host=windows ext=zip ;;
 esac
 
 FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-$host-x86_64.$ext"
@@ -17,8 +17,8 @@ if [ -e .futhark ]; then
         curl -LO "$FUTHARK_TARBALL"
     fi
     case $ext in
-        tar.xz) tar xvf "$file";;
-        zip)    unzip "$file";;
+        tar.xz) tar xvf "$file" ;;
+        zip)    unzip "$file" ;;
     esac
     cd "$OLDPWD"
 fi
@@ -59,7 +59,7 @@ case $host in
 esac
 
 cat > .env << EOF
-export PATH="\$PATH:$PWD/.futhark/futhark-nightly-linux-x86_64/bin/"
+export PATH="\$PATH:\$(dirname \$(find $PWD/.futhark/ -type f -name futhark))"
 if [ -e $PWD/.w64devkit ]; then
     export PATH="\$PATH:$PWD/.w64devkit/w64devkit/bin/"
 fi
