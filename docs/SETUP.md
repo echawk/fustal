@@ -1,5 +1,29 @@
 # Setting up a development environment
 
+## Using `./setup`
+
+The `setup` script provided at the root of the project can be used to setup
+a development environment capable of building the library. It supports
+the 3 major operating systems (Linux, macOS, & Windows) and will download
+the appropriate software required for each.
+
+It does require that you have the following software installed:
+* python3
+* curl
+* unzip (for Windows)
+
+The following software is installed via the script:
+* Futhark (via tarball)
+* python libraries (via requirements.txt)
+
+On windows the following sofware is installed:
+* w64devkit (via zip archive)
+
+**NOTE:** For Windows build environments, the only tested terminal/shell
+is the one that is provided when one installs git (git bash).
+
+## Manually
+
 Principally, the only **required** piece of software
 is the futhark compiler itself, available from
 [diku-dk/futhark](https://github.com/diku-dk/futhark).
