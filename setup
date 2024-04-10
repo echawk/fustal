@@ -42,7 +42,7 @@ case $host in
 esac
 
 . ${venvdir}activate
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 # Setup gcc on Windows
 case $host in
