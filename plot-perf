@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 
 ## simple script to generate bar graphs comparing the performance of R & fustal.
 
