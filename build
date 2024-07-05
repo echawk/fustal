@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh -ex
 
 # Check environment for needed software.
 
@@ -32,12 +32,12 @@ echo "$FUTHARK_TARGET" >> output/futhark_target
 cp -a src/* output
 cd output
 futhark pkg sync
-futhark "$FUTHARK_TARGET" --library fustal.fut
+time futhark "$FUTHARK_TARGET" --library fustal.fut
 
 # build_futhark_ffi only builds the python version of the .so,
 # hence the need for the other command.
-build_futhark_ffi fustal
-"${CC:-cc}" $CFLAGS -shared -fPIC fustal.c -o fustal.so
+time build_futhark_ffi fustal
+time "${CC:-cc}" $CFLAGS -shared -fPIC fustal.c -o fustal.so
 
 # Try to build both PDF and HTML versions of the documentation.
 if command -v emacs && [ "$BUILD_DOCS" = 1 ]; then
