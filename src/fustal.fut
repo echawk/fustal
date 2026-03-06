@@ -38,8 +38,14 @@ entry mean (xs: []f64) : f64 =
 -- equation: $\sigma^2 = \frac{1}{n} \sum_{i=1}^n(x_i - \mu)^2$
 -- link: https://en.wikipedia.org/wiki/Variance
 entry var (xs: []f64) : f64 =
-  let mu = mean xs in
-  mean (map (\x -> (sq (x - mu))) xs)
+  let (_, m2, n) =
+    loop (mean_acc, m2_acc, k) = (0.0, 0.0, 0i64) for x in xs do
+    let k1 = k + 1
+    let delta = x - mean_acc
+    let mean_new = mean_acc + delta / f64.i64 k1
+    let m2_new = m2_acc + delta * (x - mean_new)
+    in (mean_new, m2_new, k1)
+  in m2 / f64.i64 n
 
 -- desc: Calculate the population standard deviation for $xs$.
 -- equation: $\sigma = \sqrt{\sigma^2}$
