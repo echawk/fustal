@@ -6,7 +6,7 @@ case "$(uname)" in
     MINGW*) host=windows ext=zip ;;
 esac
 
-FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-$host-x86_64.$ext"
+FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-$host-arm64.$ext"
 
 # Setup futhark
 mkdir -p .futhark
@@ -59,11 +59,11 @@ case $host in
 esac
 
 cat > .env << EOF
+. ${venvdir}activate
 export PATH="\$PATH:\$(dirname \$(find $PWD/.futhark/ -type f -name futhark))"
 if [ -e $PWD/.w64devkit ]; then
     export PATH="\$PATH:$PWD/.w64devkit/w64devkit/bin/"
 fi
-. ${venvdir}activate
 EOF
 
 cat << EOF
