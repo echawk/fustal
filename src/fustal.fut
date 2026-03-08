@@ -1048,6 +1048,7 @@ def sigmoid (x: f64) : f64 =
   let z = f64.exp x
   in z / (1.0 + z)
 
+-- map sigmoid [-20.0, -2.0, 0.0, 2.0, 20.0]
 
 def logistic_loglik (y: []f64) (p: []f64) : f64 =
   let eps = 1e-15
@@ -1064,6 +1065,7 @@ def logistic_loglik (y: []f64) (p: []f64) : f64 =
        y p_clamped
   |> f64.sum
 
+-- logistic_loglik [1.0,0.0] [0.9,0.1] == (f64.log 0.9) + (f64.log 0.9)
 
 def irls_step [m][n]
   (X: [m][n]f64)
