@@ -246,16 +246,16 @@ def student_t_quantile (p: f64) (df: f64) : f64 =
   let (_, q) =
     loop (i, x) = (0i64, initial)
     while i < max_iter do
-      let fx = student_t_cdf x df - p
-      let pdf =
-        let num = f64.exp(log_gamma((df+1.0)/2.0)
-                          - log_gamma(df/2.0))
-        let denom =
-          f64.sqrt(df * f64.pi)
-          * ((1.0 + (x*x)/df) ** ((df+1.0)/2.0))
-        in num / denom
-      let x1 = x - fx / pdf
-      in (i+1i64, x1)
+    let fx = student_t_cdf x df - p
+    let pdf =
+      let num = f64.exp(log_gamma((df+1.0)/2.0)
+                        - log_gamma(df/2.0))
+      let denom =
+        f64.sqrt(df * f64.pi)
+        * ((1.0 + (x*x)/df) ** ((df+1.0)/2.0))
+      in num / denom
+    let x1 = x - fx / pdf
+    in (i+1i64, x1)
   in q
 
 entry chi_square_cdf (x: f64) (k: f64) : f64 =
@@ -516,7 +516,7 @@ entry one_way_anova (groups: [][]f64)
     |> f64.sum
 
   let ss_total = ss_between + ss_within
-  
+
   let df_between = f64.i64 (K - 1)
   let df_within  = f64.i64 (N - K)
 
@@ -529,7 +529,7 @@ entry one_way_anova (groups: [][]f64)
   in (ss_between, df_between, ms_between,
       ss_within,  df_within,  ms_within,
       ss_total,   F,          p)
-  
+
 --desc: Convert i64 matrices into f64 matrices.
 def Mf64_Mi64 (iM: [][]i64) : [][]f64 =
   map (\r ->
@@ -615,7 +615,7 @@ entry simple_regression_summary (xs: []f64) (ys: []f64)
 
   let se_alpha =
     f64.sqrt (sigma2 *
-      (1.0/n + sq xbar / sxx))
+              (1.0/n + sq xbar / sxx))
 
   let t_beta = b / se_beta
   let t_alpha = a / se_alpha
@@ -625,13 +625,13 @@ entry simple_regression_summary (xs: []f64) (ys: []f64)
 
   let p_alpha =
     student_t_pvalue t_alpha df
-  
+
   let r2 =
     simple_r_squared xs ys
 
   let adj_r2 =
     1.0 - (1.0 - r2) *
-      ((n - 1.0) / df)
+          ((n - 1.0) / df)
 
   -- F-statistic (1 predictor)
   let F =
@@ -639,14 +639,14 @@ entry simple_regression_summary (xs: []f64) (ys: []f64)
 
   let p_F =
     f_pvalue F 1.0 df
-  
+
   in (a, b,
       se_alpha, se_beta,
       t_alpha, t_beta,
       p_alpha, p_beta,
       r2, adj_r2,
       F, p_F)
-  
+
 -- link: https://en.wikipedia.org/wiki/Linear_regression#Simple_and_multiple_linear_regression
 
 -- link: https://en.wikipedia.org/wiki/General_linear_model
@@ -720,7 +720,7 @@ entry multiple_regression_summary
 
   let adj_r2 =
     1.0 - (1.0 - r2) *
-      ((n - 1.0) / df_resid)
+          ((n - 1.0) / df_resid)
 
   let sigma2 = rss / df_resid
 
@@ -759,7 +759,7 @@ entry multiple_regression_summary
 -- [[2,4,5,4,5], [1,2,3,4,5], [5,4,3,2,1]]
 
 -- multiple_regression_summary [[1,1,5], [1,2,4], [1,3,3], [1,4,2], [1,5,1]] [2,4,5,4,5]
-  
+
 entry covariance_matrix (X: [][]f64) : [][]f64 =
   let Xc =
     let means = map mean (transpose X) in
@@ -774,23 +774,23 @@ def back_substitute [n] (R: [n][n]f64) (b: [n]f64) (rank: i64) : [n]f64 =
   let beta = replicate n 0.0
   in
   loop beta = beta for i in (rank-1)..>-1 do
-    let rhs =
-      if i+1 < rank then
-        b[i] -
-        (map2 (*) R[i][i+1:rank] beta[i+1:rank]
-         |> f64.sum)
-      else b[i]
-    let xi =
-      if f64.abs R[i][i] < 1e-12 then f64.nan
-      else rhs / R[i][i]
-    in beta with [i] = xi
+  let rhs =
+    if i+1 < rank then
+      b[i] -
+      (map2 (*) R[i][i+1:rank] beta[i+1:rank]
+       |> f64.sum)
+    else b[i]
+  let xi =
+    if f64.abs R[i][i] < 1e-12 then f64.nan
+    else rhs / R[i][i]
+  in beta with [i] = xi
 
 def qr_regression_solve [m][n]
   (X_in: [m][n]f64)
   (y_in: [m]f64)
-  : ([n]f64, i64, [m][n]f64) = 
--- def qr_regression_solve (X_in: [][]f64) (y_in: []f64)
---   : ([]f64, i64, [][]f64) =
+  : ([n]f64, i64, [m][n]f64) =
+  -- def qr_regression_solve (X_in: [][]f64) (y_in: []f64)
+  --   : ([]f64, i64, [][]f64) =
   -- returns:
   -- (beta, rank, R)
 
@@ -828,22 +828,22 @@ def qr_regression_solve [m][n]
       let X =
         if beta == 0.0 then X
         else
-          let Xt_v =
-            map (\j ->
-                   map2 (*)
-                        v
-                        (map (\row -> row[j])
-                             X[k:m])
-                   |> f64.sum)
-                (iota n)
-          in
-          tabulate m (\i ->
-                        tabulate n (\j ->
-                                      if i < k then
-                                        X[i][j]
-                                      else
-                                      let vi = v[i-k]
-                                      in X[i][j] - beta * vi * Xt_v[j]))
+        let Xt_v =
+          map (\j ->
+                 map2 (*)
+                      v
+                      (map (\row -> row[j])
+                           X[k:m])
+                 |> f64.sum)
+              (iota n)
+        in
+        tabulate m (\i ->
+                      tabulate n (\j ->
+                                    if i < k then
+                                      X[i][j]
+                                    else
+                                    let vi = v[i-k]
+                                    in X[i][j] - beta * vi * Xt_v[j]))
 
       let y =
         if beta == 0.0 then y
@@ -868,7 +868,7 @@ def qr_regression_solve [m][n]
   let R =
     tabulate m (\i ->
                   tabulate n (\j ->
-                                X[i][j]))    
+                                X[i][j]))
   let Qt_y = y
 
   let R_upper =
@@ -910,7 +910,7 @@ entry multiple_regression_summary_qr [m][n]
                   else
                     f64.nan)
 
-  
+
   let rank = f64.i64 rank_i
   let df_model = rank - 1.0
   let df_resid = n_obs - rank
@@ -932,7 +932,7 @@ entry multiple_regression_summary_qr [m][n]
 
   let adj_r2 =
     1.0 - (1.0 - r2) *
-      ((n_obs - 1.0) / df_resid)
+          ((n_obs - 1.0) / df_resid)
 
   let sigma2 = rss / df_resid
   let rse = f64.sqrt sigma2
@@ -947,7 +947,7 @@ entry multiple_regression_summary_qr [m][n]
 
   let cov_beta_small =
     linalg_f64.matscale sigma2
-      (linalg_f64.matmul Rinv (transpose Rinv))
+                        (linalg_f64.matmul Rinv (transpose Rinv))
 
   let XtX_inv =
     linalg_f64.matscale (1.0 / sigma2) cov_beta_small
@@ -961,9 +961,9 @@ entry multiple_regression_summary_qr [m][n]
                     X[i][0:rank_i]
                   let tmp =
                     linalg_f64.matvecmul_row XtX_inv xi
-      in
-      linalg_f64.dotprod xi tmp)
-  
+                  in
+                  linalg_f64.dotprod xi tmp)
+
   let std_resid =
     tabulate m (\i ->
                   let denom =
@@ -971,8 +971,8 @@ entry multiple_regression_summary_qr [m][n]
                   in
                   if denom <= 0.0 then
                     f64.nan
-      else
-        residuals[i] / denom)
+                  else
+                    residuals[i] / denom)
 
   let p_model = f64.i64 rank_i
 
@@ -983,9 +983,9 @@ entry multiple_regression_summary_qr [m][n]
                   in
                   if denom <= 0.0 then
                     f64.nan
-      else
-        (sq residuals[i]) * leverage[i] / denom)
-  
+                  else
+                    (sq residuals[i]) * leverage[i] / denom)
+
   let se_small =
     linalg_f64.fromdiag cov_beta_small
     |> map f64.sqrt
@@ -1006,8 +1006,8 @@ entry multiple_regression_summary_qr [m][n]
                     [ beta_raw[i] - tcrit * se[i],
                       beta_raw[i] + tcrit * se[i] ]
                   else
-        [f64.nan, f64.nan])
-  
+                    [f64.nan, f64.nan])
+
   let tvals =
     map2 (/) beta_raw se
 
@@ -1040,4 +1040,177 @@ entry multiple_regression_summary_qr [m][n]
 -- multiple_regression_summary_qr [[1,1,5], [1,2,4], [1,3,3], [1,4,2], [1,5,1]] [2,4,5,4,5]
 
 
-  
+def sigmoid (x: f64) : f64 =
+  if x >= 0.0 then
+  let z = f64.exp (-x)
+  in 1.0 / (1.0 + z)
+  else
+  let z = f64.exp x
+  in z / (1.0 + z)
+
+
+def logistic_loglik (y: []f64) (p: []f64) : f64 =
+  let eps = 1e-15
+  let p_clamped =
+    map (\pi ->
+           if pi < eps then eps
+           else if pi > 1.0 - eps then 1.0 - eps
+           else pi)
+        p
+  in
+  map2 (\yi pi ->
+          yi * f64.log pi +
+          (1.0 - yi) * f64.log (1.0 - pi))
+       y p_clamped
+  |> f64.sum
+
+
+def irls_step [m][n]
+  (X: [m][n]f64)
+  (y: [m]f64)
+  (beta: [n]f64)
+  : ([n]f64, [m]f64, [m]f64) =
+
+  let eta =
+    linalg_f64.matvecmul_row X beta
+
+  let p =
+    map sigmoid eta
+
+  let eps = 1e-12
+  let W =
+    map (\pi ->
+           let w = pi * (1.0 - pi)
+           in if w < eps then eps else w)
+        p
+
+  let z =
+    tabulate m (\i ->
+                  eta[i] + (y[i] - p[i]) / W[i]
+               )
+
+  -- weighted X and z
+  let sqrtW =
+    map f64.sqrt W
+
+  let Xw =
+    tabulate m (\i ->
+                  tabulate n (\j ->
+                                X[i][j] * sqrtW[i]))
+
+  let zw =
+    map2 (*) z sqrtW
+
+  let (beta_new, _, _) =
+    qr_regression_solve Xw zw
+
+  in (beta_new, p, W)
+
+
+entry logistic_regression_fit_qr [m][n]
+  (X: [m][n]f64)
+  (y: [m]f64)
+  : ([n]f64, [m]f64, f64) =
+
+  let max_iter = 25i64
+  let tol = 1e-8
+
+  let beta0 =
+    replicate n 0.0
+  let (beta, p, _, _) =
+    loop (beta, _, iter, diff) =
+      (beta0, replicate m 0.5, 0i64, 1.0)
+    while iter < max_iter && diff > tol do
+
+    let (beta_new, p_new, _) =
+      irls_step X y beta
+
+    let diff_new =
+      map2 (\a b -> f64.abs (a-b))
+           beta_new beta
+      |> f64.sum
+
+    in (beta_new,
+        p_new,
+        iter + 1i64,
+        diff_new)
+
+  let loglik =
+    logistic_loglik y p
+
+  in (beta, p, loglik)
+
+entry logistic_regression_summary_qr [m][n]
+  (X: [m][n]f64)
+  (y: [m]f64)
+  : ([]f64, []f64, []f64, []f64, f64,
+     f64,
+     f64,
+     f64,
+     f64) =
+
+  let (beta, p, loglik) =
+    logistic_regression_fit_qr X y
+
+  let rank = f64.i64 (length beta)
+
+  let deviance =
+    -2.0 * loglik
+
+  let ybar = mean y
+  let p_null =
+    replicate m ybar
+
+  let loglik_null =
+    logistic_loglik y p_null
+
+  let null_deviance =
+    -2.0 * loglik_null
+
+  let aic =
+    deviance + 2.0 * rank
+
+  let pseudo_r2 =
+    1.0 - (loglik / loglik_null)
+
+  let W =
+    map (\pi -> pi * (1.0 - pi)) p
+
+  let sqrtW =
+    map f64.sqrt W
+
+  let Xw =
+    tabulate m (\i ->
+                  tabulate n (\j ->
+                                X[i][j] * sqrtW[i]))
+
+  let Xt = transpose Xw
+  let XtX = linalg_f64.matmul Xt Xw
+  let XtX_inv = linalg_f64.inv XtX
+
+  let se =
+    linalg_f64.fromdiag XtX_inv
+    |> map f64.sqrt
+
+  let zvals =
+    map2 (/) beta se
+
+  let pvals =
+    map (\z ->
+           2.0 * (1.0 - student_t_cdf (f64.abs z) 1e6))
+        zvals
+
+  in (beta, se, zvals, pvals,
+      loglik,
+      deviance,
+      null_deviance,
+      aic,
+      pseudo_r2)
+
+-- logistic_regression_summary_qr [[1.0, 0.0], [1.0, 1.0], [1.0, 2.0], [1.0, 3.0], [1.0, 4.0]] [0.0, 0.0, 0.0, 1.0, 1.0]
+-- logistic_regression_summary_qr [[1.0, 0.0], [1.0, 1.0], [1.0, 2.0], [1.0, 3.0], [1.0, 4.0], [1.0, 5.0]] [0.0, 0.0, 1.0, 0.0, 1.0, 1.0]
+
+
+-- x <- c(0,1,2,3,4,5)
+-- y <- c(0,0,1,0,1,1)
+-- summary(glm(y ~ x, family=binomial))
