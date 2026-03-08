@@ -235,6 +235,29 @@ entry student_t_cdf (t: f64) (nu: f64) : f64 =
 entry student_t_pvalue (t: f64) (nu: f64) : f64 =
   2.0 * (1.0 - student_t_cdf (f64.abs t) nu)
 
+def student_t_quantile (p: f64) (df: f64) : f64 =
+  -- Newton iteration
+  let max_iter = 30i64
+  -- let eps = 1e-12
+
+  let initial =
+    if p < 0.5 then -1.0 else 1.0
+
+  let (_, q) =
+    loop (i, x) = (0i64, initial)
+    while i < max_iter do
+      let fx = student_t_cdf x df - p
+      let pdf =
+        let num = f64.exp(log_gamma((df+1.0)/2.0)
+                          - log_gamma(df/2.0))
+        let denom =
+          f64.sqrt(df * f64.pi)
+          * ((1.0 + (x*x)/df) ** ((df+1.0)/2.0))
+        in num / denom
+      let x1 = x - fx / pdf
+      in (i+1i64, x1)
+  in q
+
 entry chi_square_cdf (x: f64) (k: f64) : f64 =
   regularized_gamma (k / 2.0) (x / 2.0)
 
@@ -332,6 +355,20 @@ def one_sample_summary (xs: []f64) : (f64, f64, f64, f64) =
   let sd = sample_std xs
   let se = sd / f64.sqrt n
   in (mean_x, sd, se, n)
+
+entry one_sample_mean_ci (xs: []f64) (alpha: f64) : (f64, f64) =
+  let (mean_x, _, se, n) = one_sample_summary xs
+  let df = n - 1.0
+  let tcrit =
+    student_t_quantile (1.0 - alpha/2.0) df
+
+  let margin = tcrit * se
+
+  in (mean_x - margin,
+      mean_x + margin)
+
+-- one_sample_mean_ci [2,4,6,8,10] 0.05
+-- should equal: t.test(c(2,4,6,8,10))$conf.int (in R)
 
 -- desc: Calculate the t statistic for $xs$ when compared against mean $\mu$.
 -- equation: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
@@ -447,6 +484,52 @@ entry f_test (M: [][]f64) : f64 =
   let une_var = map f (iota K) |> f64.sum in
   exp_var / une_var
 
+entry one_way_anova (groups: [][]f64)
+  : (f64, f64, f64, f64, f64, f64, f64, f64, f64) =
+  -- returns:
+  -- (SS_between, SS_within,
+  --  df_between, df_within,
+  --  F, p_value, MS_within)
+
+  let K = length groups
+  let nV = map length groups
+  let N = i64.sum nV
+
+  let means = map mean groups
+  let grand_mean =
+    (map f64.sum groups |> f64.sum)
+    / f64.i64 N
+
+  -- Between-group SS
+  let ss_between =
+    map2 (\ni mi ->
+            f64.i64 ni * sq (mi - grand_mean))
+         nV means
+    |> f64.sum
+
+  -- Within-group SS
+  let ss_within =
+    map2 (\grp mi ->
+            map (\x -> sq (x - mi)) grp
+            |> f64.sum)
+         groups means
+    |> f64.sum
+
+  let ss_total = ss_between + ss_within
+  
+  let df_between = f64.i64 (K - 1)
+  let df_within  = f64.i64 (N - K)
+
+  let ms_between = ss_between / df_between
+  let ms_within  = ss_within / df_within
+
+  let F = ms_between / ms_within
+  let p = f_pvalue F df_between df_within
+
+  in (ss_between, df_between, ms_between,
+      ss_within,  df_within,  ms_within,
+      ss_total,   F,          p)
+  
 --desc: Convert i64 matrices into f64 matrices.
 def Mf64_Mi64 (iM: [][]i64) : [][]f64 =
   map (\r ->
@@ -495,6 +578,75 @@ entry simple_r_squared (xs: []f64) (ys: []f64) : f64 =
   let tss = map (\y -> sq (y - ybar)) ys |> f64.sum in
   1.0 - (rss / tss)
 
+entry simple_regression_summary (xs: []f64) (ys: []f64)
+  : (f64, f64, f64, f64, f64, f64,
+     f64, f64, f64, f64, f64, f64) =
+  -- returns:
+  -- (alpha, beta,
+  --  se_alpha, se_beta,
+  --  t_alpha, t_beta,
+  --  r2, adj_r2)
+
+  let n = f64.i64 (length xs)
+  let df = n - 2.0
+
+  let (a, b) =
+    simple_linear_regression xs ys
+
+  let yhat =
+    map (\x -> a + b*x) xs
+
+  let residuals =
+    map2 (-) ys yhat
+
+  let rss =
+    map sq residuals
+    |> f64.sum
+
+  let sigma2 = rss / df
+
+  let xbar = mean xs
+  let sxx =
+    map (\x -> sq (x - xbar)) xs
+    |> f64.sum
+
+  let se_beta =
+    f64.sqrt (sigma2 / sxx)
+
+  let se_alpha =
+    f64.sqrt (sigma2 *
+      (1.0/n + sq xbar / sxx))
+
+  let t_beta = b / se_beta
+  let t_alpha = a / se_alpha
+
+  let p_beta =
+    student_t_pvalue t_beta df
+
+  let p_alpha =
+    student_t_pvalue t_alpha df
+  
+  let r2 =
+    simple_r_squared xs ys
+
+  let adj_r2 =
+    1.0 - (1.0 - r2) *
+      ((n - 1.0) / df)
+
+  -- F-statistic (1 predictor)
+  let F =
+    (r2 / (1.0 - r2)) * df
+
+  let p_F =
+    f_pvalue F 1.0 df
+  
+  in (a, b,
+      se_alpha, se_beta,
+      t_alpha, t_beta,
+      p_alpha, p_beta,
+      r2, adj_r2,
+      F, p_F)
+  
 -- link: https://en.wikipedia.org/wiki/Linear_regression#Simple_and_multiple_linear_regression
 
 -- link: https://en.wikipedia.org/wiki/General_linear_model
