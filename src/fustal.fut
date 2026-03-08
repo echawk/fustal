@@ -23,6 +23,233 @@ module linalg_f64 = mk_linalg f64
 
 -- FIXME: Make these functions not depend on floating point values -- have them be defined for all types.
 
+let lanczos : [9]f64 =
+  [ 0.99999999999980993,
+    676.5203681218851,
+    -1259.1392167224028,
+    771.32342877765313,
+    -176.61502916214059,
+    12.507343278686905,
+    -0.13857109526572012,
+    9.9843695780195716e-6,
+    1.5056327351493116e-7 ]
+
+def log_gamma (z_in: f64) : f64 =
+  -- Exact known values
+  if z_in == 1.0 then 0.0
+  else if z_in == 2.0 then 0.0
+  else if z_in == 0.5 then f64.log (f64.sqrt f64.pi)
+  else
+       let g = 7.0
+
+       let use_reflection = z_in < 0.5
+       let z = if use_reflection then 1.0 - z_in else z_in
+       let z1 = z - 1.0
+
+       let x =
+         let (_, acc) =
+           loop (i, acc) = (1i64, lanczos[0])
+           while i < 9i64 do
+           let term = lanczos[i] / (z1 + f64.i64 i)
+           in (i + 1i64, acc + term)
+         in acc
+
+       let t = z1 + g + 0.5
+
+       let lg =
+         0.5 * f64.log (2.0 * f64.pi)
+         + (z1 + 0.5) * f64.log t
+         - t
+         + f64.log x
+
+       in
+       if use_reflection then
+         f64.log f64.pi
+         - f64.log (f64.sin (f64.pi * z_in))
+         - lg
+       else
+         lg
+
+-- log_gamma 1 == 0.0
+-- log_gamma 2 == 0.0
+-- log_gamma 0.5 == f64.pi |> f64.sqrt |> f64.log
+
+entry log_beta (a: f64) (b: f64) : f64 =
+  log_gamma a + log_gamma b - log_gamma (a + b)
+
+
+-- log_beta 1 1 == 0.0
+-- log_beta 1 5 == -1 * f64.log 5
+-- log_beta 0.5 0.5 == f64.log f64.pi
+-- log_beta 2.3 7.1 == log_beta 7.1 2.3
+
+def betacf (a: f64) (b: f64) (x: f64) : f64 =
+  let max_iter = 100i64
+  let fpmin = 1e-30
+
+  let qab = a + b
+  let qap = a + 1.0
+  let qam = a - 1.0
+
+  let d0 =
+    let tmp = 1.0 - qab * x / qap
+    in if f64.abs tmp < fpmin then fpmin else tmp
+
+  let d0 = 1.0 / d0
+  let c0 = 1.0
+  let h0 = d0
+
+  let (_, _, h_final, _) =
+    loop (c, d, h, m) = (c0, d0, h0, 1i64)
+    while m <= max_iter do
+
+    let m2 = 2i64 * m
+    let m_f = f64.i64 m
+    let m2_f = f64.i64 m2
+
+    let aa1 =
+      m_f * (b - m_f) * x /
+      ((qam + m2_f) * (a + m2_f))
+
+    let d1 =
+      let tmp = 1.0 + aa1 * d
+      in if f64.abs tmp < fpmin then fpmin else tmp
+
+    let c1 =
+      let tmp = 1.0 + aa1 / c
+      in if f64.abs tmp < fpmin then fpmin else tmp
+
+    let d1 = 1.0 / d1
+    let h1 = h * d1 * c1
+
+    let aa2 =
+      -(a + m_f) * (qab + m_f) * x /
+       ((a + m2_f) * (qap + m2_f))
+
+    let d2 =
+      let tmp = 1.0 + aa2 * d1
+      in if f64.abs tmp < fpmin then fpmin else tmp
+
+    let c2 =
+      let tmp = 1.0 + aa2 / c1
+      in if f64.abs tmp < fpmin then fpmin else tmp
+
+    let d2 = 1.0 / d2
+    let h2 = h1 * d2 * c2
+
+    in (c2, d2, h2, m + 1i64)
+
+  in h_final
+
+entry regularized_beta (a: f64) (b: f64) (x_in: f64) : f64 =
+  if x_in <= 0.0 then 0.0
+  else if x_in >= 1.0 then 1.0
+  else
+       let eps = 1e-15
+       let x =
+         if x_in < eps then eps
+         else if x_in > 1.0 - eps then 1.0 - eps
+         else x_in
+
+       let bt =
+         f64.exp (
+           log_gamma (a + b)
+           - log_gamma a
+           - log_gamma b
+           + a * f64.log x
+           + b * f64.log (1.0 - x)
+         )
+
+       in
+       if x < (a + 1.0) / (a + b + 2.0) then
+         bt * betacf a b x / a
+       else
+         1.0 - bt * betacf b a (1.0 - x) / b
+
+-- regularized_beta 1 1 0.3  → 0.3
+-- regularized_beta 1 1 0.7  → 0.7
+-- Tolerance: ~1e-14.
+-- If this fails → betacf is wrong.
+
+-- regularized_beta 2.3 5.1 0.4
+-- 1 - regularized_beta 5.1 2.3 0.6
+
+-- regularized_beta 2.3 5.1 0.0  → 0
+-- regularized_beta 2.3 5.1 1.0  → 1
+
+def regularized_gamma (s: f64) (z: f64) : f64 =
+  let max_iter = 100i64
+  let fpmin = 1e-30
+  in if z <= 0.0 then
+       0.0
+
+     else if z < s + 1.0 then
+       -- Series expansion
+       let (_, sum, _) =
+         loop (n, acc, term) = (0i64, 1.0 / s, 1.0 / s)
+         while n < max_iter do
+         let n1 = n + 1i64
+         let term1 = term * z / (s + f64.i64 n1)
+         in (n1, acc + term1, term1)
+       in sum * f64.exp(-z + s * f64.log z - log_gamma s)
+     else
+       -- Continued fraction
+       let (_, _, _, h) =
+         loop (i, c, d, h) =
+           (1i64,
+            1.0 / fpmin,
+            1.0 / (z - s + 1.0),
+            1.0 / (z - s + 1.0))
+         while i < max_iter do
+
+         let i_f = f64.i64 i
+         let an = -i_f * (i_f - s)
+         let b = z + 2.0 * i_f - s
+
+         let d1 =
+           let tmp = an * d + b
+           in if f64.abs tmp < fpmin then fpmin else tmp
+
+         let c1 =
+           let tmp = b + an / c
+           in if f64.abs tmp < fpmin then fpmin else tmp
+
+         let d1 = 1.0 / d1
+         let h1 = h * d1 * c1
+         in (i + 1i64, c1, d1, h1)
+       in
+       1.0 - f64.exp(-z + s * f64.log z - log_gamma s) * h
+
+entry student_t_cdf (t: f64) (nu: f64) : f64 =
+  let x = nu / (t * t + nu)
+  let ib = regularized_beta (nu / 2.0) 0.5 x
+  in
+  if t >= 0.0 then
+    1.0 - 0.5 * ib
+  else
+    0.5 * ib
+
+-- student_t_cdf 0 5
+-- student_t_cdf 0 100
+
+entry student_t_pvalue (t: f64) (nu: f64) : f64 =
+  2.0 * (1.0 - student_t_cdf (f64.abs t) nu)
+
+entry chi_square_cdf (x: f64) (k: f64) : f64 =
+  regularized_gamma (k / 2.0) (x / 2.0)
+
+entry chi_square_pvalue (x: f64) (k: f64) : f64 =
+  1.0 - chi_square_cdf x k
+
+entry f_cdf (x: f64) (d1: f64) (d2: f64) : f64 =
+  regularized_beta
+  (d1/2.0)
+  (d2/2.0)
+  ((d1 * x) / (d1 * x + d2))
+
+entry f_pvalue (x: f64) (d1: f64) (d2: f64) : f64 =
+  1.0 - f_cdf x d1 d2
+
 -- desc: Calculate the value of $x$ squared.
 -- equation: $x^2$
 entry sq (x: f64) : f64 =
@@ -98,6 +325,14 @@ entry sample_cov (xs: []f64) (ys: []f64) : f64 =
   let n = f64.i64 (length xs) in
   f64.sum (map2 (\x y -> (x - mu) * (y - v)) xs ys) / (n - 1)
 
+def one_sample_summary (xs: []f64) : (f64, f64, f64, f64) =
+  let n_i = length xs
+  let n = f64.i64 n_i
+  let mean_x = mean xs
+  let sd = sample_std xs
+  let se = sd / f64.sqrt n
+  in (mean_x, sd, se, n)
+
 -- desc: Calculate the t statistic for $xs$ when compared against mean $\mu$.
 -- equation: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
 -- link: https://en.wikipedia.org/wiki/Student%27s_t-test#One-sample_t-test
@@ -106,6 +341,13 @@ entry one_sample_t_test (xs: []f64) (mu: f64) : f64 =
   let sd = sample_std xs in
   let n = (f64.i64 (length xs)) in
   (xbar - mu) / (sd / f64.sqrt n)
+
+entry one_sample_t_test_full (xs: []f64) (mu0: f64) : (f64, f64, f64, f64) =
+  let (mean_x, _, se, n) = one_sample_summary xs
+  let df = n - 1.0
+  let t = (mean_x - mu0) / se
+  let p = student_t_pvalue t df
+  in (t, df, p, se)
 
 -- desc: Calculate the t statistic between $as$ and $bs$.
 -- equation: $t = \frac{\Delta \bar{X}}{s_{\Delta \bar{X}}} = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{{s_{\bar{X_1}}}^2 + {s_{\bar{X_2}}}^2}}$
@@ -116,6 +358,64 @@ entry two_sample_t_test (as: []f64) (bs: []f64) : f64 =
   let delta_xbar = xbar1 - xbar2 in
   let denom = f64.sqrt (sq (sample_stderr as) + sq (sample_stderr bs)) in
   delta_xbar / denom
+
+entry paired_t_test (xs: []f64) (ys: []f64) : f64 =
+  let ds = map2 (-) xs ys in
+  let dbar = mean ds in
+  let sd = sample_std ds in
+  let n = f64.i64 (length ds) in
+  dbar / (sd / f64.sqrt n)
+
+entry paired_t_test_full (xs: []f64) (ys: []f64) : (f64, f64, f64) =
+  let t = paired_t_test xs ys
+  let n = f64.i64 (length xs)
+  let df = n - 1.0
+  let p = student_t_pvalue t df
+  in (t, df, p)
+
+
+entry welch_df (as: []f64) (bs: []f64) : f64 =
+  let n1 = f64.i64 (length as) in
+  let n2 = f64.i64 (length bs) in
+  let s1 = sample_std as in
+  let s2 = sample_std bs in
+  let v1 = sq s1 / n1 in
+  let v2 = sq s2 / n2 in
+  let num = sq (v1 + v2) in
+  let denom =
+    (sq v1) / (n1 - 1.0) +
+    (sq v2) / (n2 - 1.0) in
+  num / denom
+
+entry welch_t_test_full (xs: []f64) (ys: []f64) : (f64, f64, f64) =
+  let t = two_sample_t_test xs ys
+  let df = welch_df xs ys
+  let p = student_t_pvalue t df
+  in (t, df, p)
+
+entry cohens_d (as: []f64) (bs: []f64) : f64 =
+  let n1 = f64.i64 (length as) in
+  let n2 = f64.i64 (length bs) in
+  let s1 = sample_std as in
+  let s2 = sample_std bs in
+  let pooled =
+    f64.sqrt (
+      ((n1 - 1.0) * sq s1 + (n2 - 1.0) * sq s2)
+      /
+      (n1 + n2 - 2.0)
+    )
+  in
+  (mean as - mean bs) / pooled
+
+entry sample_covariance_matrix (X: [][]f64) : [][]f64 =
+  let n = f64.i64 (length X) in
+  let means = map mean (transpose X) in
+  let Xc =
+    map (\row ->
+           map2 (\x m -> x - m) row means)
+        X in
+  let XtX = linalg_f64.matmul (transpose Xc) Xc
+  in map (map (\v -> v / (n - 1.0))) XtX
 
 -- desc: Calculate the pearson correlation coefficient between $xs$ and $ys$.
 -- equation: $\rho_{X,Y} = \frac{cov(X, Y)}{\sigma_X \sigma_Y}$
@@ -171,8 +471,8 @@ entry chi_squared_test (M: [][]i64) : f64 =
           map2 (\ov ev -> (sq (ov - ev)) / ev)
                or er)
        fM expM
-       |> map f64.sum
-              |> f64.sum
+  |> map f64.sum
+  |> f64.sum
 
 -- desc: Calculates the $\hat{\alpha}$ and $\hat{\beta}$ values for a simple linear regression model for $xs$ and $ys$.
 -- equation: $(\hat{\alpha}, \hat{\beta}) = (\bar{y} - (\hat{\beta} - \bar{x}), \frac{\sum_{i = 1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sum_{i = 1}^n (x_i - \bar{x})^2})$
@@ -186,6 +486,14 @@ entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
                       xs |> f64.sum) in
   let alpha_hat = ybar - (beta_hat * xbar) in
   (alpha_hat, beta_hat)
+
+entry simple_r_squared (xs: []f64) (ys: []f64) : f64 =
+  let (a, b) = simple_linear_regression xs ys in
+  let yhat = map (\x -> a + b * x) xs in
+  let rss = map2 (\y yh -> sq (y - yh)) ys yhat |> f64.sum in
+  let ybar = mean ys in
+  let tss = map (\y -> sq (y - ybar)) ys |> f64.sum in
+  1.0 - (rss / tss)
 
 -- link: https://en.wikipedia.org/wiki/Linear_regression#Simple_and_multiple_linear_regression
 
