@@ -6,7 +6,12 @@ case "$(uname)" in
     MINGW*) host=windows ext=zip ;;
 esac
 
-FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-$host-arm64.$ext"
+case "$(uname -m)" in
+    arm64) arch=arm64;;
+    *) arch=x86_64;;
+esac
+
+FUTHARK_TARBALL="https://github.com/diku-dk/futhark/releases/download/nightly/futhark-nightly-$host-$arch.$ext"
 
 # Setup futhark
 mkdir -p .futhark
