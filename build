@@ -37,7 +37,10 @@ time futhark "$FUTHARK_TARGET" --library fustal.fut
 # build_futhark_ffi only builds the python version of the .so,
 # hence the need for the other command.
 time build_futhark_ffi fustal
-time "${CC:-cc}" $CFLAGS -shared -fPIC fustal.c -o fustal.so
+case $(uname) in
+    Darwin) so=dylib;;
+esac
+time "${CC:-cc}" $CFLAGS -shared -fPIC fustal.c -o "fustal.${so:-so}"
 
 # Try to build both PDF and HTML versions of the documentation.
 if command -v emacs && [ "$BUILD_DOCS" = 1 ]; then
