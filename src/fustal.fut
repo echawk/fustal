@@ -893,7 +893,10 @@ entry multiple_regression_summary_qr [m][n]
      f64,
      []f64,
      []f64,
-     [][]f64) =
+     [][]f64,
+     []f64,
+     []f64,
+     []f64) =
 
   let n_obs = f64.i64 (length y)
 
@@ -946,6 +949,43 @@ entry multiple_regression_summary_qr [m][n]
     linalg_f64.matscale sigma2
       (linalg_f64.matmul Rinv (transpose Rinv))
 
+  let XtX_inv =
+    linalg_f64.matscale (1.0 / sigma2) cov_beta_small
+
+  let leverage =
+    tabulate m (\i ->
+                  if rank_i == 0 then
+                    0.0
+                  else
+                  let xi =
+                    X[i][0:rank_i]
+                  let tmp =
+                    linalg_f64.matvecmul_row XtX_inv xi
+      in
+      linalg_f64.dotprod xi tmp)
+  
+  let std_resid =
+    tabulate m (\i ->
+                  let denom =
+                    rse * f64.sqrt (1.0 - leverage[i])
+                  in
+                  if denom <= 0.0 then
+                    f64.nan
+      else
+        residuals[i] / denom)
+
+  let p_model = f64.i64 rank_i
+
+  let cooks =
+    tabulate m (\i ->
+                  let denom =
+                    p_model * sigma2 * (1.0 - leverage[i]) * (1.0 - leverage[i])
+                  in
+                  if denom <= 0.0 then
+                    f64.nan
+      else
+        (sq residuals[i]) * leverage[i] / denom)
+  
   let se_small =
     linalg_f64.fromdiag cov_beta_small
     |> map f64.sqrt
@@ -991,7 +1031,13 @@ entry multiple_regression_summary_qr [m][n]
       rse,
       yhat,
       residuals,
-      conf_int)  
+      conf_int,
+      leverage,
+      std_resid,
+      cooks)
 
 -- multiple_regression_summary_qr [[1,1], [1,2], [1,3], [1,4], [1,5]] [2,4,5,4,5]
 -- multiple_regression_summary_qr [[1,1,5], [1,2,4], [1,3,3], [1,4,2], [1,5,1]] [2,4,5,4,5]
+
+
+  
