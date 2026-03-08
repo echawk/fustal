@@ -679,9 +679,319 @@ entry wilcoxon_rank_sum_test (xs: []f64) (ys: []f64) : f64 =
 
 -- let xs = [[10, 20],[20, 0]] : [][]f64
 -- let ys = [50, 20] : []f64
-entry multiple_linear_regression (xs: [][]f64) (ys: []f64) : [][]f64 =
-  let xsT = transpose xs in
-  let xsTxsI = linalg_f64.matmul xsT xs |> linalg_f64.inv in
-  let xsTys = linalg_f64.matvecmul_col xsT ys in
-  linalg_f64.matmul xsTxsI xsTys
-  --1.0
+
+entry multiple_regression_summary
+  (X: [][]f64)  -- must include intercept column
+  (y: []f64)
+  : ( []f64,    -- coefficients
+      []f64,    -- std errors
+      []f64,    -- t values
+      []f64,    -- p values
+      f64,      -- r2
+      f64,      -- adj r2
+      f64,      -- F
+      f64 ) =   -- F p-value
+
+  let n = f64.i64 (length y)
+  let p = f64.i64 (length (X[0]))
+
+  let Xt = transpose X
+  let XtX = linalg_f64.matmul Xt X
+  let XtX_inv = linalg_f64.inv XtX
+  let XtY = linalg_f64.matvecmul_row Xt y
+  let beta = linalg_f64.matvecmul_row XtX_inv XtY
+
+  let yhat =
+    linalg_f64.matvecmul_row X beta
+
+  let residuals =
+    map2 (-) y yhat
+
+  let rss =
+    map sq residuals |> f64.sum
+
+  let ybar = mean y
+  let tss =
+    map (\v -> sq (v - ybar)) y |> f64.sum
+
+  let r2 = 1.0 - rss / tss
+  let df_model = p - 1.0
+  let df_resid = n - p
+
+  let adj_r2 =
+    1.0 - (1.0 - r2) *
+      ((n - 1.0) / df_resid)
+
+  let sigma2 = rss / df_resid
+
+  let cov_beta =
+    linalg_f64.matscale sigma2 XtX_inv
+
+  let se =
+    linalg_f64.fromdiag cov_beta
+    |> map f64.sqrt
+
+  let tvals =
+    map2 (/) beta se
+
+  let pvals =
+    map (\t -> student_t_pvalue t df_resid)
+        tvals
+
+  let ms_model =
+    (tss - rss) / df_model
+
+  let ms_resid =
+    rss / df_resid
+
+  let F = ms_model / ms_resid
+  let p_F = f_pvalue F df_model df_resid
+
+  in (beta,
+      se,
+      tvals,
+      pvals,
+      r2,
+      adj_r2,
+      F,
+      p_F)
+
+-- [[2,4,5,4,5], [1,2,3,4,5], [5,4,3,2,1]]
+
+-- multiple_regression_summary [[1,1,5], [1,2,4], [1,3,3], [1,4,2], [1,5,1]] [2,4,5,4,5]
+  
+entry covariance_matrix (X: [][]f64) : [][]f64 =
+  let Xc =
+    let means = map mean (transpose X) in
+    map (\row ->
+           map2 (\x m -> x - m) row means)
+        X
+  let n = f64.i64 (length X) in
+  linalg_f64.matmul (transpose Xc) Xc
+  |> map (map (\v -> v / (n - 1)))
+
+def back_substitute [n] (R: [n][n]f64) (b: [n]f64) (rank: i64) : [n]f64 =
+  let beta = replicate n 0.0
+  in
+  loop beta = beta for i in (rank-1)..>-1 do
+    let rhs =
+      if i+1 < rank then
+        b[i] -
+        (map2 (*) R[i][i+1:rank] beta[i+1:rank]
+         |> f64.sum)
+      else b[i]
+    let xi =
+      if f64.abs R[i][i] < 1e-12 then f64.nan
+      else rhs / R[i][i]
+    in beta with [i] = xi
+
+def qr_regression_solve [m][n]
+  (X_in: [m][n]f64)
+  (y_in: [m]f64)
+  : ([n]f64, i64, [m][n]f64) = 
+-- def qr_regression_solve (X_in: [][]f64) (y_in: []f64)
+--   : ([]f64, i64, [][]f64) =
+  -- returns:
+  -- (beta, rank, R)
+
+  let X = copy X_in
+  let y = copy y_in
+
+
+  let (X, y, rank) =
+    loop (X, y, rnk) = (X, y, 0i64)
+    for k in 0..<n do
+
+      -- extract column vector
+      let x =
+        map (\row -> row[k])
+            X[k:m]
+
+      let normx =
+        f64.sqrt (map sq x |> f64.sum)
+
+      let sign =
+        if x[0] >= 0.0 then 1.0 else -1.0
+
+      let alpha = -sign * normx
+
+      let v =
+        x with [0] = x[0] - alpha
+
+      let vnorm =
+        map sq v |> f64.sum
+
+      let beta =
+        if vnorm < 1e-20 then 0.0
+        else 2.0 / vnorm
+
+      let X =
+        if beta == 0.0 then X
+        else
+          let Xt_v =
+            map (\j ->
+                   map2 (*)
+                        v
+                        (map (\row -> row[j])
+                             X[k:m])
+                   |> f64.sum)
+                (iota n)
+          in
+          tabulate m (\i ->
+                        tabulate n (\j ->
+                                      if i < k then
+                                        X[i][j]
+                                      else
+                                      let vi = v[i-k]
+                                      in X[i][j] - beta * vi * Xt_v[j]))
+
+      let y =
+        if beta == 0.0 then y
+        else
+        let vt_y =
+          map2 (*) v y[k:m] |> f64.sum
+
+        in
+        tabulate m (\i ->
+                      if i < k then y[i]
+                      else
+                        y[i] - beta * v[i-k] * vt_y)
+
+      let diag =
+        if k < m then f64.abs X[k][k] else 0.0
+
+      let rnk =
+        if diag > 1e-10 then rnk + 1 else rnk
+
+      in (X, y, rnk)
+
+  let R =
+    tabulate m (\i ->
+                  tabulate n (\j ->
+                                X[i][j]))    
+  let Qt_y = y
+
+  let R_upper =
+    tabulate n (\i ->
+                  tabulate n (\j ->
+                                R[i][j]))
+
+  let y_upper =
+    Qt_y[0:n]
+
+  let beta =
+    back_substitute R_upper y_upper rank
+
+  in (beta, rank, R)
+
+
+entry multiple_regression_summary_qr [m][n]
+  (X: [m][n]f64)
+  (y: [m]f64)
+  : ([]f64, []f64, []f64, []f64,
+     f64, f64, f64, f64,
+     f64,
+     []f64,
+     []f64,
+     [][]f64) =
+
+  let n_obs = f64.i64 (length y)
+
+  let (beta_raw, rank_i, R) =
+    qr_regression_solve X y
+
+  let beta_masked =
+    tabulate n (\i ->
+                  if i < rank_i then
+                    beta_raw[i]
+                  else
+                    f64.nan)
+
+  
+  let rank = f64.i64 rank_i
+  let df_model = rank - 1.0
+  let df_resid = n_obs - rank
+
+  let yhat =
+    linalg_f64.matvecmul_row X beta_raw
+
+  let residuals =
+    map2 (-) y yhat
+
+  let rss =
+    map sq residuals |> f64.sum
+
+  let ybar = mean y
+  let tss =
+    map (\v -> sq (v - ybar)) y |> f64.sum
+
+  let r2 = 1.0 - rss / tss
+
+  let adj_r2 =
+    1.0 - (1.0 - r2) *
+      ((n_obs - 1.0) / df_resid)
+
+  let sigma2 = rss / df_resid
+  let rse = f64.sqrt sigma2
+
+  let R1 =
+    tabulate rank_i (\i ->
+                       tabulate rank_i (\j ->
+                                          R[i][j]))
+
+  let Rinv =
+    linalg_f64.inv R1
+
+  let cov_beta_small =
+    linalg_f64.matscale sigma2
+      (linalg_f64.matmul Rinv (transpose Rinv))
+
+  let se_small =
+    linalg_f64.fromdiag cov_beta_small
+    |> map f64.sqrt
+
+  let se =
+    tabulate n (\i ->
+                  if i < rank_i then
+                    se_small[i]
+                  else
+                    f64.nan)
+
+  let tcrit =
+    student_t_quantile 0.975 df_resid
+
+  let conf_int =
+    tabulate n (\i ->
+                  if i < rank_i then
+                    [ beta_raw[i] - tcrit * se[i],
+                      beta_raw[i] + tcrit * se[i] ]
+                  else
+        [f64.nan, f64.nan])
+  
+  let tvals =
+    map2 (/) beta_raw se
+
+  let pvals =
+    map (\t ->
+           if f64.isnan t then f64.nan
+           else student_t_pvalue t df_resid)
+        tvals
+
+  let ms_model =
+    (tss - rss) / df_model
+
+  let ms_resid =
+    rss / df_resid
+
+  let F = ms_model / ms_resid
+  let p_F = f_pvalue F df_model df_resid
+
+  in (beta_masked, se, tvals, pvals,
+      r2, adj_r2, F, p_F,
+      rse,
+      yhat,
+      residuals,
+      conf_int)  
+
+-- multiple_regression_summary_qr [[1,1], [1,2], [1,3], [1,4], [1,5]] [2,4,5,4,5]
+-- multiple_regression_summary_qr [[1,1,5], [1,2,4], [1,3,3], [1,4,2], [1,5,1]] [2,4,5,4,5]
