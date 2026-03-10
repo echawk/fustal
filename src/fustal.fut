@@ -544,6 +544,110 @@ entry one_way_anova (groups: [][]f64)
       ss_within,  df_within,  ms_within,
       ss_total,   F,          p)
 
+-- Test determinant 2x2
+-- ==
+-- entry: det_lu
+-- input { [[1.0,2.0],[3.0,4.0]] }
+-- output { -2.0 }
+
+-- Test determinant 3x3
+-- ==
+-- entry: det_lu
+-- input { [[1.0,2.0,3.0],
+--          [0.0,4.0,5.0],
+--          [1.0,0.0,6.0]] }
+-- output { 22.0 }
+entry det_lu [n] (A: [n][n]f64) : f64 =
+  let U =
+    loop U = A for k in 0..<n do
+      let pivot = U[k][k]
+      in
+      tabulate n (\i ->
+        tabulate n (\j ->
+          if i <= k then
+            U[i][j]
+          else
+            U[i][j] - (U[i][k] / pivot) * U[k][j]))
+
+  in
+  tabulate n (\i -> U[i][i])
+  |> f64.product
+
+-- Test MANOVA Wilks (2 groups, 2 responses)
+-- ==
+-- entry: manova_wilks
+-- input {
+--   [[1.0,0.0],
+--    [1.0,0.0],
+--    [1.0,0.0],
+--    [1.0,1.0],
+--    [1.0,1.0],
+--    [1.0,1.0]]
+--   [[1.0,2.0],
+--    [1.5,1.8],
+--    [0.8,2.2],
+--    [3.0,4.0],
+--    [2.8,4.2],
+--    [3.2,3.9]]
+-- }
+-- output { 5.99481318337617e-4 2500.663043478241}
+entry manova_wilks [n][p][q]
+  (X: [n][p]f64)
+  (Y: [n][q]f64)
+  : (f64, f64) =
+
+  let Xt = transpose X
+  let XtX = linalg_f64.matmul Xt X
+  let XtX_inv = linalg_f64.inv XtX
+  let XtY = linalg_f64.matmul Xt Y
+  let B = linalg_f64.matmul XtX_inv XtY
+
+  let Yhat =
+    linalg_f64.matmul X B
+
+  let Resid =
+    linalg_f64.matsub Y Yhat
+
+  let E =
+    linalg_f64.matmul (transpose Resid) Resid
+
+  let mean_cols =
+    map mean (transpose Y)
+
+  let Ybar =
+    tabulate n (\_ -> mean_cols)
+
+  let Yc =
+    linalg_f64.matsub Y Ybar
+
+  let T =
+    linalg_f64.matmul (transpose Yc) Yc
+
+  let H =
+    linalg_f64.matsub T E
+
+  let detE =
+    det_lu E
+
+  let detHE =
+    det_lu (linalg_f64.matadd H E)
+
+  let lambda =
+    detE / detHE
+
+  -- degrees of freedom
+  let g = f64.i64 (p - 1)          -- tested effects
+  let p_resp = f64.i64 q           -- number of responses
+  let n_obs = f64.i64 n
+
+  let df1 = p_resp * g
+  let df2 = n_obs - f64.i64 p - p_resp + 1.0
+
+  let F =
+    ((1.0 - lambda) / lambda) * (df2 / df1)
+
+  in (lambda, F)
+
 --desc: Convert i64 matrices into f64 matrices.
 def Mf64_Mi64 (iM: [][]i64) : [][]f64 =
   map (\r ->
