@@ -473,16 +473,16 @@ entry welch_t_test_full (xs: []f64) (ys: []f64) : (f64, f64, f64) =
   let p = student_t_pvalue t df
   in (t, df, p)
 
-entry cohens_d (as: []f64) (bs: []f64) : f64 =
-  let n1 = f64.i64 (length as) in
-  let n2 = f64.i64 (length bs) in
+entry cohens_d [n][m] (as: [n]f64) (bs: [m]f64) : f64 =
+  let nf = f64.i64 n in
+  let mf = f64.i64 m in
   let s1 = sample_std as in
   let s2 = sample_std bs in
   let pooled =
     f64.sqrt (
-      ((n1 - 1.0) * sq s1 + (n2 - 1.0) * sq s2)
+      ((nf - 1.0) * sq s1 + (mf - 1.0) * sq s2)
       /
-      (n1 + n2 - 2.0)
+      (nf + mf - 2.0)
     )
   in
   (mean as - mean bs) / pooled
