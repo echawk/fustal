@@ -286,6 +286,10 @@ entry sq (x: f64) : f64 =
 -- entry: mean
 -- input { [1.0,2.0,3.0,4.0,5.0] }
 -- output { 3.0 }
+
+-- ==
+-- entry: mean
+-- random input { [1000000]f64 } auto output
 entry mean (xs: []f64) : f64 =
   (f64.sum xs) / f64.i64 (length xs)
 
@@ -362,7 +366,12 @@ entry sample_cov (xs: []f64) (ys: []f64) : f64 =
   let n = f64.i64 (length xs) in
   f64.sum (map2 (\x y -> (x - mu) * (y - v)) xs ys) / (n - 1)
 
-def one_sample_summary (xs: []f64) : (f64, f64, f64, f64) =
+-- Test one sample summary
+-- ==
+-- entry: one_sample_summary
+-- input { [1.0,2.0,3.0,4.0,5.0] }
+-- output { 3.0 1.5811388300841898 0.7071067811865476 5.0 }
+entry one_sample_summary (xs: []f64) : (f64, f64, f64, f64) =
   let n_i = length xs
   let n = f64.i64 n_i
   let mean_x = mean xs
@@ -370,6 +379,11 @@ def one_sample_summary (xs: []f64) : (f64, f64, f64, f64) =
   let se = sd / f64.sqrt n
   in (mean_x, sd, se, n)
 
+-- Test one-sample mean CI
+-- ==
+-- entry: one_sample_mean_ci
+-- input { [1.0,2.0,3.0,4.0,5.0] 0.05 }
+-- output { 1.0378583129651415 4.9621416870348585 }
 entry one_sample_mean_ci (xs: []f64) (alpha: f64) : (f64, f64) =
   let (mean_x, _, se, n) = one_sample_summary xs
   let df = n - 1.0
@@ -387,6 +401,11 @@ entry one_sample_mean_ci (xs: []f64) (alpha: f64) : (f64, f64) =
 -- desc: Calculate the t statistic for $xs$ when compared against mean $\mu$.
 -- equation: $t = \frac{\bar{x} - \mu_0}{s/\sqrt{n}}$
 -- link: https://en.wikipedia.org/wiki/Student%27s_t-test#One-sample_t-test
+-- Test one-sample t-test
+-- ==
+-- entry: one_sample_t_test_full
+-- input { [1.0,2.0,3.0,4.0,5.0] 3.0 }
+-- output { 0.0 4.0 1.0 0.7071067811865476 }
 entry one_sample_t_test (xs: []f64) (mu: f64) : f64 =
   let xbar = mean xs in
   let sd = sample_std xs in
@@ -417,6 +436,11 @@ entry paired_t_test (xs: []f64) (ys: []f64) : f64 =
   let n = f64.i64 (length ds) in
   dbar / (sd / f64.sqrt n)
 
+-- Test paired t-test
+-- ==
+-- entry: paired_t_test_full
+-- input { [1.0,2.0,3.0] [1.0,2.0,3.0] }
+-- output { f64.nan 2.0 f64.nan }
 entry paired_t_test_full (xs: []f64) (ys: []f64) : (f64, f64, f64) =
   let t = paired_t_test xs ys
   let n = f64.i64 (length xs)
@@ -438,6 +462,11 @@ entry welch_df (as: []f64) (bs: []f64) : f64 =
     (sq v2) / (n2 - 1.0) in
   num / denom
 
+-- Test Welch t-test
+-- ==
+-- entry: welch_t_test_full
+-- input { [1.0,2.0,3.0] [1.0,2.0,3.0] }
+-- output { 0.0 4.0 1.0 }
 entry welch_t_test_full (xs: []f64) (ys: []f64) : (f64, f64, f64) =
   let t = two_sample_t_test xs ys
   let df = welch_df xs ys
@@ -498,6 +527,24 @@ entry f_test (M: [][]f64) : f64 =
   let une_var = map f (iota K) |> f64.sum in
   exp_var / une_var
 
+-- Test one-way ANOVA
+-- ==
+-- entry: one_way_anova
+-- input {
+--   [[1.0,2.0,3.0],
+--    [1.0,2.0,3.0]]
+-- }
+-- output {
+--   0.0
+--   1.0
+--   0.0
+--   4.0
+--   4.0
+--   1.0
+--   4.0
+--   0.0
+--   1.0
+-- }
 entry one_way_anova (groups: [][]f64)
   : (f64, f64, f64, f64, f64, f64, f64, f64, f64) =
   -- returns:
@@ -659,6 +706,12 @@ def Mf64_Mi64 (iM: [][]i64) : [][]f64 =
 -- desc: Computes the $\chi^2$ statistic for a matrix $M$, where the rows and columns are different categories.
 -- equation: $\chi^2 = \sum_{i=1}^k\frac{(O_i - E_i)^2}{E_i}$
 -- link: https://en.wikipedia.org/wiki/Chi-squared_test
+
+-- Test chi-squared
+-- ==
+-- entry: chi_squared_test
+-- input { [[10i64,10i64],[10i64,10i64]] }
+-- output { 0.0 }
 entry chi_squared_test (M: [][]i64) : f64 =
   let fM = Mf64_Mi64 M in
   let rowTotals = map f64.sum fM in
@@ -777,6 +830,17 @@ entry simple_regression_summary (xs: []f64) (ys: []f64)
 -- desc:
 -- equation: $U = \sum_{i=1}^n\sum_{j=1}^m S(X_i, Y_j), S(X, Y) = \begin{cases}  1 & X > Y \\ \frac{1}{2} & X = Y\\ 0 & X < Y \end{cases}$
 -- link: https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test
+
+-- Test Wilcoxon rank sum
+-- ==
+-- entry: wilcoxon_rank_sum_test
+-- input { [1.0,2.0,3.0] [4.0,5.0,6.0] }
+-- output { 0.0 }
+
+-- ==
+-- entry: wilcoxon_rank_sum_test
+-- input { [4.0,5.0,6.0] [1.0,2.0,3.0] }
+-- output { 9.0 }
 entry wilcoxon_rank_sum_test (xs: []f64) (ys: []f64) : f64 =
   let S = \x y ->
             if x > y then 1.0
@@ -912,6 +976,22 @@ entry multiple_regression_summary
 
 -- multiple_regression_summary [[1,1,5], [1,2,4], [1,3,3], [1,4,2], [1,5,1]] [2,4,5,4,5]
 
+  -- Test covariance matrix
+-- ==
+-- entry: covariance_matrix
+-- input {
+--   [[1.0,2.0],
+--    [2.0,3.0],
+--    [3.0,4.0]]
+-- }
+-- output {
+--   [[1.0,1.0],
+--    [1.0,1.0]]
+-- }
+
+-- ==
+-- entry: covariance_matrix
+-- random input { [100000][4]f64 } auto output
 entry covariance_matrix (X: [][]f64) : [][]f64 =
   let Xc =
     let means = map mean (transpose X) in
@@ -941,10 +1021,6 @@ def qr_regression_solve [m][n]
   (X_in: [m][n]f64)
   (y_in: [m]f64)
   : ([n]f64, i64, [m][n]f64) =
-  -- def qr_regression_solve (X_in: [][]f64) (y_in: []f64)
-  --   : ([]f64, i64, [][]f64) =
-  -- returns:
-  -- (beta, rank, R)
 
   let X = copy X_in
   let y = copy y_in
@@ -1037,6 +1113,9 @@ def qr_regression_solve [m][n]
   in (beta, rank, R)
 
 
+-- ==
+-- entry: multiple_regression_summary_qr
+-- random input { [50000][6]f64 [50000]f64 } auto output
 entry multiple_regression_summary_qr [m][n]
   (X: [m][n]f64)
   (y: [m]f64)
@@ -1202,7 +1281,12 @@ def sigmoid (x: f64) : f64 =
 
 -- map sigmoid [-20.0, -2.0, 0.0, 2.0, 20.0]
 
-def logistic_loglik (y: []f64) (p: []f64) : f64 =
+-- Test logistic loglik
+-- ==
+-- entry: logistic_loglik
+-- input { [1.0,0.0] [0.9,0.1] }
+-- output { -0.21072103131565256 }
+entry logistic_loglik (y: []f64) (p: []f64) : f64 =
   let eps = 1e-15
   let p_clamped =
     map (\pi ->
@@ -1529,6 +1613,10 @@ entry glm_summary_qr [m][n]
 --   6i64
 --   true
 -- }
+
+-- ==
+-- entry: logistic_regression_summary_qr
+-- random input { [20000][5]f64 [20000]f64 } auto output
 entry logistic_regression_summary_qr [m][n]
   (X: [m][n]f64)
   (y: [m]f64)
