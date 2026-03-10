@@ -1425,3 +1425,104 @@ entry logistic_regression_summary_qr [m][n]
 -- x <- c(0,1,2,3,4,5)
 -- y <- c(0,0,1,0,1,1)
 -- summary(glm(y ~ x, family=binomial))
+
+def lag_matrix [N]
+  (y: [N]f64)
+  (p: i64)
+  : ([][p]f64, []f64) =
+
+  let rows = N - p
+
+  let X =
+    tabulate rows (\i ->
+      tabulate p (\j ->
+        y[i + p - j - 1]))
+
+  let y_trim =
+    tabulate rows (\i ->
+      y[i + p])
+
+  in (X, y_trim)
+
+entry ar_fit_qr [N]
+  (y: [N]f64)
+  (p: i64)
+  : ([]f64, f64, f64) =
+
+  let rows = N - p
+
+  let X =
+    tabulate rows (\i ->
+      [1.0] ++
+      tabulate p (\j ->
+        y[i + p - j - 1]))
+
+  let y_trim =
+    tabulate rows (\i ->
+      y[i + p])
+
+  -- Direct QR solve (no summary wrapper)
+  let (beta, _, _) =
+    qr_regression_solve X y_trim
+
+  let yhat =
+    linalg_f64.matvecmul_row X beta
+
+  let residuals =
+    map2 (-) y_trim yhat
+
+  let rss =
+    map sq residuals |> f64.sum
+
+  let sigma2_unbiased =
+    rss / f64.i64 (rows - (p + 1))
+
+  let sigma2_mle =
+    rss / f64.i64 rows
+
+  let aic =
+    f64.i64 rows *
+    (f64.log (2.0 * f64.pi)
+     + 1.0
+     + f64.log sigma2_mle)
+    + 2.0 * f64.i64 (p + 2)
+
+  in (beta, sigma2_unbiased, aic)
+
+  
+entry ar_select_aic (y: []f64) (max_p: i64)
+  : (f64, i64) =
+  let results =
+    tabulate max_p (\k ->
+                      let p = k + 1
+                      let (_, _, aic) =
+                        ar_fit_qr y p
+                      in aic)
+
+  let best =
+    reduce_comm
+    (\(best_aic, best_p) (aic, p) ->
+       if aic < best_aic then (aic, p)
+       else (best_aic, best_p))
+    (results[0], 1)
+    (zip results (iota max_p |> map (\x -> x + 1)))
+
+  in best
+
+-- let y = [1.0,0.5,0.2,0.1,0.05,0.02,0.01] in ar_select_aic y 3
+
+-- y <- c(1.0,0.5,0.2,0.1,0.05,0.02,0.01)
+-- ar(y, order.max=3, method="yw")
+
+-- y <- c(1.0,0.5,0.2,0.1,0.05,0.02,0.01)
+
+-- p <- 2
+-- Y <- y[(p+1):length(y)]
+
+-- X <- embed(y, p+1)[, -1]
+-- X <- cbind(1, X)
+
+-- model <- lm(Y ~ X - 1)
+-- summary(model)
+-- AIC(model)
+  
