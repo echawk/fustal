@@ -18,10 +18,19 @@
 -- quantiles
 
 import "lib/github.com/diku-dk/linalg/linalg"
+import "lib/github.com/diku-dk/sorts/merge_sort"
 
 module linalg_f64 = mk_linalg f64
 
 -- FIXME: Make these functions not depend on floating point values -- have them be defined for all types.
+
+-- Test z-score
+-- ==
+-- entry: z_score
+-- input { 10.0 8.0 2.0 }
+-- output { 1.0 }
+entry z_score (x: f64) (mu: f64) (sigma: f64) : f64 =
+  (x - mu) / sigma
 
 let lanczos : [9]f64 =
   [ 0.99999999999980993,
@@ -270,6 +279,107 @@ entry f_cdf (x: f64) (d1: f64) (d2: f64) : f64 =
   (d2/2.0)
   ((d1 * x) / (d1 * x + d2))
 
+-- Test Poisson weight sum
+-- ==
+-- entry: poisson_weight_sum
+-- input { 10.0 }
+-- output { 1.0 }
+entry poisson_weight_sum (lambda: f64) : f64 =
+  let half_lambda = lambda / 2.0
+  let max_iter = 200i64
+
+  let (_, acc) =
+    loop (j, acc) = (0i64, 0.0)
+    while j < max_iter do
+    let weight =
+      f64.exp(-half_lambda)
+      * (half_lambda ** f64.i64 j)
+      / f64.exp(log_gamma(f64.i64 j + 1.0))
+    in (j + 1i64, acc + weight)
+
+  in acc
+
+
+entry debug_central_f (x: f64) (df1: f64) (df2: f64) : []f64 =
+  let max_iter = 10i64
+  in tabulate max_iter (\j ->
+                          f_cdf x (df1 + 2.0 * f64.i64 j) df2)
+
+
+-- Test noncentral F CDF
+-- ==
+-- entry: noncentral_f_cdf
+-- input { 3.3541308285291986 2.0 27.0 10.0 }
+-- output { 0.23264638263399945 }
+
+entry noncentral_f_cdf
+  (x: f64)
+  (df1: f64)
+  (df2: f64)
+  (lambda: f64)
+  : f64 =
+
+  let tol = 1e-14f64
+  let max_iter = 200i64
+  let half_lambda = lambda / 2.0
+
+  let (_, acc) =
+    loop (j, acc) = (0i64, 0.0)
+    while j < max_iter do
+
+    let weight =
+      f64.exp(-half_lambda)
+      * (half_lambda ** f64.i64 j)
+      / f64.exp(log_gamma(f64.i64 j + 1.0))
+
+    let df1_j = df1 + 2.0 * f64.i64 j
+    let x_scaled = (df1 / df1_j) * x
+
+    let central =
+      f_cdf x_scaled df1_j df2
+
+    let acc_new = acc + weight * central
+
+    in
+    if weight < tol then
+      (max_iter, acc_new)
+    else
+      (j + 1i64, acc_new)
+
+  in acc
+
+-- qf(0.95, 2, 10)
+
+-- Test F quantile
+-- ==
+-- entry: f_quantile
+-- input { 0.95 2.0 10.0 }
+-- output { 4.1028210151304 }
+entry f_quantile (p: f64) (d1: f64) (d2: f64) : f64 =
+  let max_iter = 100i64
+
+  let (lo0, hi0, _) =
+    loop (lo, hi, iter) = (0.0, 1.0, 0i64)
+    while iter < max_iter do
+      if f_cdf hi d1 d2 < p then
+        (lo, hi * 2.0, iter + 1i64)
+      else
+        (lo, hi, max_iter)
+
+  let (lo1, hi1, _) =
+    loop (lo, hi, iter) = (lo0, hi0, 0i64)
+    while iter < max_iter do
+    let mid = (lo + hi) / 2.0 in
+    let v = f_cdf mid d1 d2 in
+    let (lo_new, hi_new) =
+      if v < p then
+        (mid, hi)
+      else
+        (lo, mid)
+    in (lo_new, hi_new, iter + 1i64)
+
+  in (lo1 + hi1) / 2.0
+
 entry f_pvalue (x: f64) (d1: f64) (d2: f64) : f64 =
   1.0 - f_cdf x d1 d2
 
@@ -419,6 +529,38 @@ entry one_sample_t_test_full (xs: []f64) (mu0: f64) : (f64, f64, f64, f64) =
   let p = student_t_pvalue t df
   in (t, df, p, se)
 
+-- Test power for one-sample t-test
+-- ==
+-- entry: power_one_sample_t
+-- input { 0.5 1.0 30i64 0.05 }
+-- output { 0.7532302804241549 }
+
+entry power_one_sample_t
+  (effect: f64)
+  (sigma: f64)
+  (n_i: i64)
+  (alpha: f64)
+  : f64 =
+
+  let n = f64.i64 n_i
+  let df = n - 1.0
+
+  let delta =
+    effect / (sigma / f64.sqrt n)
+
+  let tcrit =
+    student_t_quantile (1.0 - alpha/2.0) df
+
+  -- approximate noncentral via central shift
+  let beta =
+    student_t_cdf (tcrit - delta) df
+    - student_t_cdf (-tcrit - delta) df
+
+  let power =
+    1.0 - beta
+
+  in power
+
 -- desc: Calculate the t statistic between $as$ and $bs$.
 -- equation: $t = \frac{\Delta \bar{X}}{s_{\Delta \bar{X}}} = \frac{\bar{X_1} - \bar{X_2}}{\sqrt{{s_{\bar{X_1}}}^2 + {s_{\bar{X_2}}}^2}}$
 -- link: https://en.wikipedia.org/wiki/Welch%27s_t-test
@@ -428,6 +570,37 @@ entry two_sample_t_test (as: []f64) (bs: []f64) : f64 =
   let delta_xbar = xbar1 - xbar2 in
   let denom = f64.sqrt (sq (sample_stderr as) + sq (sample_stderr bs)) in
   delta_xbar / denom
+
+
+-- Test two-sample power
+-- ==
+-- entry: power_two_sample_t
+-- input { 0.5 1.0 30i64 0.05 }
+-- output { 0.47422063207906295 }
+
+entry power_two_sample_t
+  (effect: f64)
+  (sigma: f64)
+  (n_i: i64)
+  (alpha: f64)
+  : f64 =
+
+  let n = f64.i64 n_i
+  let df = 2.0 * n - 2.0
+
+  let d = effect / sigma
+
+  let delta =
+    d * f64.sqrt (n / 2.0)
+
+  let tcrit =
+    student_t_quantile (1.0 - alpha/2.0) df
+
+  let beta =
+    student_t_cdf (tcrit - delta) df
+    - student_t_cdf (-tcrit - delta) df
+
+  in 1.0 - beta
 
 entry paired_t_test (xs: []f64) (ys: []f64) : f64 =
   let ds = map2 (-) xs ys in
@@ -486,6 +659,116 @@ entry cohens_d [n][m] (as: [n]f64) (bs: [m]f64) : f64 =
     )
   in
   (mean as - mean bs) / pooled
+
+-- Test Bonferroni correction
+-- ==
+-- entry: p_adjust_bonferroni
+-- input { [0.01, 0.02, 0.5, 0.9] }
+-- output { [0.04, 0.08, 1.0, 1.0] }
+entry p_adjust_bonferroni (ps: []f64) : []f64 =
+  let m = f64.i64 (length ps)
+  in
+  map (\p ->
+         let adj = p * m
+         in if adj > 1.0 then 1.0 else adj)
+      ps
+
+
+-- Test Benjamini–Hochberg correction
+-- ==
+-- entry: p_adjust_bh
+-- input { [0.01, 0.02, 0.5, 0.9] }
+-- output { [0.04, 0.04, 0.6666666666666666, 0.9] }
+
+entry p_adjust_bh [n] (ps: [n]f64) : []f64 =
+  let m = f64.i64 n
+
+  let indexed =
+    zip ps (iota n)
+
+  let sorted =
+    merge_sort (\(p1, _) (p2, _) -> p1 < p2)
+               indexed
+
+  let sorted_ps =
+    map (\(p, _) -> p) sorted
+
+  let sorted_idx =
+    map (\(_, i) -> i) sorted
+
+  let raw_adj =
+    tabulate n (\i ->
+                  let rank = f64.i64 (i + 1)
+                  in (sorted_ps[i] * m) / rank)
+
+  -- enforce monotonicity from back
+  let monotone =
+    loop adj = raw_adj
+    for i in (n - 2)..>-1 do
+    let next = adj[i + 1]
+    let cur  = adj[i]
+    let newv = if cur > next then next else cur
+    in adj with [i] = newv
+
+  let clamped =
+    map (\x -> if x > 1.0 then 1.0 else x)
+        monotone
+
+
+  -- restore original order
+  let result =
+    tabulate n (\i ->
+                  let pos =
+                    loop j = 0
+                    while sorted_idx[j] != i do j + 1
+                  in clamped[pos])
+
+  in result
+
+-- Test Holm correction
+-- ==
+-- entry: p_adjust_holm
+-- input { [0.01, 0.02, 0.5, 0.9] }
+-- output { [0.04, 0.06, 1.0, 1.0] }
+entry p_adjust_holm [n] (ps: [n]f64) : []f64 =
+  let indexed =
+    zip ps (iota n)
+
+  let sorted =
+    merge_sort (\(p1, _) (p2, _) -> p1 <= p2)
+               indexed
+
+  let sorted_ps =
+    map (\(p, _) -> p) sorted
+
+  let sorted_idx =
+    map (\(_, i) -> i) sorted
+
+  let raw_adj =
+    tabulate n (\i ->
+                  let factor = f64.i64 (n - i)
+                  in sorted_ps[i] * factor)
+
+  let monotone =
+    loop adj = raw_adj
+    for i in 1..<n do
+    let prev = adj[i - 1]
+    let cur  = adj[i]
+    let newv = if cur < prev then prev else cur
+    in adj with [i] = newv
+
+  let clamped =
+    map (\x -> if x > 1.0 then 1.0 else x)
+        monotone
+
+  let result =
+    tabulate n (\i ->
+                  let pos =
+                    loop j = 0
+                    while sorted_idx[j] != i do j + 1
+                  in clamped[pos])
+
+  in result
 
 entry sample_covariance_matrix (X: [][]f64) : [][]f64 =
   let n = f64.i64 (length X) in
@@ -591,6 +874,81 @@ entry one_way_anova (groups: [][]f64)
       ss_within,  df_within,  ms_within,
       ss_total,   F,          p)
 
+-- one_way_anova [[1.0,2.0,3.0], [1.0,2.0,3.0]]
+
+-- Test eta squared
+-- ==
+-- entry: eta_squared_one_way_anova
+-- input { [[1.0,2.0,3.0],[4.0,5.0,6.0]] }
+-- output { 0.7714285714285715 }
+
+entry eta_squared_one_way_anova (groups: [][]f64) : f64 =
+  let (ss_between, _, _, _, _, _, ss_total, _, _) =
+    one_way_anova groups
+  in
+  ss_between / ss_total
+
+
+-- Test Tukey HSD (equal group sizes)
+-- ==
+-- entry: tukey_hsd_equal
+-- input {
+--   [[1.0,2.0,3.0],
+--    [4.0,5.0,6.0]]
+--   0.05
+-- }
+-- output { 2.2669579355275196 }
+entry tukey_hsd_equal (groups: [][]f64) (alpha: f64) : f64 =
+  let (_, _, _, _, df_within, ms_within, _, _, _) =
+    one_way_anova groups
+
+  let n_i = length groups[0]
+
+  let tcrit =
+    student_t_quantile (1.0 - alpha/2.0) df_within
+
+  let q_approx =
+    f64.sqrt 2.0 * tcrit
+
+  let hsd =
+    q_approx *
+    f64.sqrt (ms_within / f64.i64 n_i)
+
+  in hsd
+
+-- Test ANOVA power
+-- ==
+-- entry: power_one_way_anova
+-- input { 0.25 3i64 30i64 0.05 }
+-- output { 0.7673536 }
+
+entry power_one_way_anova
+  (eta2: f64)
+  (k_i: i64)
+  (n_total_i: i64)
+  (alpha: f64)
+  : f64 =
+
+  let k = f64.i64 k_i
+  let n_total = f64.i64 n_total_i
+
+  let df1 = k - 1.0
+  let df2 = n_total - k
+
+  let f_effect =
+    f64.sqrt (eta2 / (1.0 - eta2))
+
+  let lambda =
+    f_effect * f_effect * n_total
+
+  let fcrit =
+    f_quantile (1.0 - alpha) df1 df2
+
+  let beta =
+    noncentral_f_cdf fcrit df1 df2 lambda
+
+  in 1.0 - beta
+
 -- Test determinant 2x2
 -- ==
 -- entry: det_lu
@@ -607,14 +965,14 @@ entry one_way_anova (groups: [][]f64)
 entry det_lu [n] (A: [n][n]f64) : f64 =
   let U =
     loop U = A for k in 0..<n do
-      let pivot = U[k][k]
-      in
-      tabulate n (\i ->
-        tabulate n (\j ->
-          if i <= k then
-            U[i][j]
-          else
-            U[i][j] - (U[i][k] / pivot) * U[k][j]))
+    let pivot = U[k][k]
+    in
+    tabulate n (\i ->
+                  tabulate n (\j ->
+                                if i <= k then
+                                  U[i][j]
+                                else
+                                  U[i][j] - (U[i][k] / pivot) * U[k][j]))
 
   in
   tabulate n (\i -> U[i][i])
@@ -976,7 +1334,7 @@ entry multiple_regression_summary
 
 -- multiple_regression_summary [[1,1,5], [1,2,4], [1,3,3], [1,4,2], [1,5,1]] [2,4,5,4,5]
 
-  -- Test covariance matrix
+-- Test covariance matrix
 -- ==
 -- entry: covariance_matrix
 -- input {
