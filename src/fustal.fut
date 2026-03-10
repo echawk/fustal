@@ -1067,6 +1067,65 @@ def logistic_loglik (y: []f64) (p: []f64) : f64 =
 
 -- logistic_loglik [1.0,0.0] [0.9,0.1] == (f64.log 0.9) + (f64.log 0.9)
 
+type glm_family = #Logistic | #Poisson | #Gaussian
+
+def irls_step_family [m][n]
+  (family: glm_family)
+  (X: [m][n]f64)
+  (y: [m]f64)
+  (beta: [n]f64)
+  : ([n]f64, [m]f64, [m]f64) =
+
+  let eta =
+    linalg_f64.matvecmul_row X beta
+
+  let (mu, W, z) =
+    match family
+
+    case #Logistic ->
+      let p = map sigmoid eta
+      let eps = 1e-12
+      let W =
+        map (\pi ->
+               let w = pi * (1.0 - pi)
+               in if w < eps then eps else w)
+            p
+      let z =
+        tabulate m (\i ->
+                      eta[i] + (y[i] - p[i]) / W[i])
+      in (p, W, z)
+
+    case #Poisson ->
+      let mu = map f64.exp eta
+      let eps = 1e-12
+      let W =
+        map (\mu0 -> if mu0 < eps then eps else mu0) mu
+      let z =
+        tabulate m (\i ->
+                      eta[i] + (y[i] - mu[i]) / mu[i])
+      in (mu, W, z)
+
+    case #Gaussian ->
+      let mu = eta
+      let W = replicate m 1.0
+      let z = y
+      in (mu, W, z)
+
+  let sqrtW = map f64.sqrt W
+
+  let Xw =
+    tabulate m (\i ->
+                  tabulate n (\j ->
+                                X[i][j] * sqrtW[i]))
+
+  let zw =
+    map2 (*) z sqrtW
+
+  let (beta_new, _, _) =
+    qr_regression_solve Xw zw
+
+  in (beta_new, mu, W)
+
 def irls_step [m][n]
   (X: [m][n]f64)
   (y: [m]f64)
@@ -1108,6 +1167,54 @@ def irls_step [m][n]
 
   in (beta_new, p, W)
 
+entry glm_fit_qr [m][n]
+  (family: glm_family)
+  (X: [m][n]f64)
+  (y: [m]f64)
+  : ([n]f64, [m]f64, f64, i64, bool) =
+
+  let max_iter = 50i64
+  let tol = 1e-8
+
+  let beta0 = replicate n 0.0
+
+  let (beta, mu, iter, diff) =
+    loop (beta, _, iter, diff) =
+      (beta0, replicate m 0.5, 0i64, 1.0)
+    while iter < max_iter && diff > tol do
+
+    let (beta_new, mu_new, _) =
+      irls_step_family family X y beta
+
+    let diff_new =
+      map2 (\a b -> f64.abs (a-b))
+           beta_new beta
+      |> f64.sum
+
+    in (beta_new,
+        mu_new,
+        iter + 1i64,
+        diff_new)
+
+  let loglik =
+    match family
+    case #Logistic ->
+      logistic_loglik y mu
+    case #Poisson ->
+      map2 (\yi mu0 ->
+              yi * f64.log mu0 - mu0)
+           y mu
+      |> f64.sum
+    case #Gaussian ->
+      let rss =
+        map2 (\yi mu0 -> sq (yi - mu0)) y mu
+        |> f64.sum
+      in -0.5 * rss
+
+  let converged = diff <= tol
+
+  in (beta, mu, loglik, iter, converged)
+
 
 entry logistic_regression_fit_qr [m][n]
   (X: [m][n]f64)
@@ -1141,6 +1248,108 @@ entry logistic_regression_fit_qr [m][n]
     logistic_loglik y p
 
   in (beta, p, loglik)
+
+entry glm_summary_qr [m][n]
+  (family: glm_family)
+  (X: [m][n]f64)
+  (y: [m]f64)
+  : ([]f64, []f64, []f64, []f64,
+     f64, f64, f64, f64, f64,
+     f64, f64,
+     i64, bool) =
+
+  let (beta, mu, loglik, iter, converged) =
+    glm_fit_qr family X y
+
+  let rank = f64.i64 (length beta)
+
+  let deviance =
+    match family 
+    case #Logistic -> -2.0 * loglik
+    case #Poisson  -> -2.0 * loglik
+    case #Gaussian -> -2.0 * loglik
+
+  let ybar = mean y
+  let mu_null =
+    match family
+    case #Logistic -> replicate m ybar
+    case #Poisson  -> replicate m ybar
+    case #Gaussian -> replicate m ybar
+
+  let loglik_null =
+    match family
+    case #Logistic -> logistic_loglik y mu_null
+    case #Poisson  ->
+      map2 (\yi mu0 ->
+              yi * f64.log mu0 - mu0)
+           y mu_null
+      |> f64.sum
+    case #Gaussian ->
+      let rss =
+        map (\yi -> sq (yi - ybar)) y
+        |> f64.sum
+      in -0.5 * rss
+
+  let null_deviance = -2.0 * loglik_null
+
+  let aic = deviance + 2.0 * rank
+
+  let pseudo_r2 =
+    1.0 - (loglik / loglik_null)
+
+  let lr_stat =
+    null_deviance - deviance
+
+  let lr_df =
+    rank - 1.0
+
+  let lr_p =
+    1.0 - chi_square_cdf lr_stat lr_df
+                         
+  -- covariance
+  let W =
+    match family
+    case #Logistic ->
+      map (\mu0 -> mu0 * (1.0 - mu0)) mu
+    case #Poisson ->
+      mu
+    case #Gaussian ->
+      replicate m 1.0
+
+  let sqrtW = map f64.sqrt W
+
+  let Xw =
+    tabulate m (\i ->
+                  tabulate n (\j ->
+                                X[i][j] * sqrtW[i]))
+
+  let Xt = transpose Xw
+  let XtX = linalg_f64.matmul Xt Xw
+  let XtX_inv = linalg_f64.inv XtX
+
+  let se =
+    linalg_f64.fromdiag XtX_inv
+    |> map f64.sqrt
+
+  let zvals =
+    map2 (/) beta se
+
+  let pvals =
+    map (\z ->
+           2.0 * (1.0 - student_t_cdf (f64.abs z) 1e6))
+        zvals
+
+  in (beta, se, zvals, pvals,
+      loglik,
+      deviance,
+      null_deviance,
+      aic,
+      pseudo_r2,
+      lr_stat,
+      lr_p,
+      iter,
+      converged)
+
 
 entry logistic_regression_summary_qr [m][n]
   (X: [m][n]f64)
