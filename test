@@ -2,6 +2,8 @@
 # Ensure we only test if the library has been built.
 [ -d output ] || exit 1
 
+futhark test output/fustal.fut
+
 test_out=output/test-output.csv
 
 echo "Backend,Function,Time_in_s,V1,V2,V3,V4" > "$test_out"
