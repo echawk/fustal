@@ -281,6 +281,11 @@ entry sq (x: f64) : f64 =
 -- desc: Calculate the mean of $xs$.
 -- equation: $\mu = \frac{1}{n} \sum_{i=1}^{n}x_i$
 -- link:
+-- Test mean/variance/std
+-- ==
+-- entry: mean
+-- input { [1.0,2.0,3.0,4.0,5.0] }
+-- output { 3.0 }
 entry mean (xs: []f64) : f64 =
   (f64.sum xs) / f64.i64 (length xs)
 
@@ -321,6 +326,11 @@ entry cov (xs: []f64) (ys: []f64) : f64 =
 -- desc: Calculate the sample variance for $xs$.
 -- equation: $s^2 = \frac{1}{n - 1} \sum_{i=1}^{n}(x_i - \bar{x})^2$
 -- link: https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation
+-- Test sample var
+-- ==
+-- entry: sample_var
+-- input { [1.0,2.0,3.0,4.0,5.0] }
+-- output { 2.5 }
 entry sample_var (xs: []f64) : f64 =
   let xbar = mean xs in
   let n = f64.i64 (length xs) in
@@ -329,6 +339,10 @@ entry sample_var (xs: []f64) : f64 =
 -- desc: Calculate the sample standard deviation for $xs$.
 -- equation: $s = \sqrt{s^2}$
 -- link: https://en.wikipedia.org/wiki/Standard_deviation#Corrected_sample_standard_deviation
+-- Test sample std.
+-- entry: sample_std
+-- input { [1.0,2.0,3.0,4.0,5.0] }
+-- output { 1.5811388300841898 }
 entry sample_std (xs: []f64) : f64 =
   f64.sqrt (sample_var xs)
 
@@ -560,6 +574,11 @@ entry chi_squared_test (M: [][]i64) : f64 =
 -- desc: Calculates the $\hat{\alpha}$ and $\hat{\beta}$ values for a simple linear regression model for $xs$ and $ys$.
 -- equation: $(\hat{\alpha}, \hat{\beta}) = (\bar{y} - (\hat{\beta} - \bar{x}), \frac{\sum_{i = 1}^n(x_i - \bar{x})(y_i - \bar{y})}{\sum_{i = 1}^n (x_i - \bar{x})^2})$
 -- link: https://en.wikipedia.org/wiki/Simple_linear_regression
+-- Test simple regression
+-- ==
+-- entry: simple_linear_regression
+-- input { [1.0,2.0,3.0,4.0,5.0] [2.0,4.0,5.0,4.0,5.0] }
+-- output { 2.2 0.6 }
 entry simple_linear_regression (xs: []f64) (ys: []f64) : (f64, f64) =
   let xbar = mean xs in
   let ybar = mean ys in
@@ -680,6 +699,35 @@ entry wilcoxon_rank_sum_test (xs: []f64) (ys: []f64) : f64 =
 -- let xs = [[10, 20],[20, 0]] : [][]f64
 -- let ys = [50, 20] : []f64
 
+-- Test multiple regression
+-- ==
+-- entry: multiple_regression_summary_qr
+-- input {
+--   [[1.0,1.0],
+--    [1.0,2.0],
+--    [1.0,3.0],
+--    [1.0,4.0],
+--    [1.0,5.0]]
+--   [2.0,4.0,5.0,4.0,5.0]
+-- }
+-- output {
+--   [2.2, 0.6]
+--   [0.938083151964686, 0.2828427124746191]
+--   [2.345207879911715, 2.121320343559642]
+--   [0.1007434560854199, 0.12402706265755459]
+--   0.6
+--   0.46666666666666656
+--   4.5
+--   0.12402706265755492
+--   0.8944271909999161
+--   [2.8,3.4,4.0,4.6,5.2]
+--   [-0.8,0.6,1.0,-0.6,-0.2]
+--   [[-0.7853992610189113,5.185399261018912],
+--    [-0.30013174529127407,1.5001317452912741]]
+--   [0.6,0.3,0.2,0.3,0.6]
+--   [-1.4142135623730947,0.8017837257372724,1.25,-0.801783725737274,-0.35355339059327595]
+--   [1.5,0.13775510204081598,0.1953125,0.13775510204081673,0.09375]
+-- }
 entry multiple_regression_summary
   (X: [][]f64)  -- must include intercept column
   (y: []f64)
@@ -1264,7 +1312,7 @@ entry glm_summary_qr [m][n]
   let rank = f64.i64 (length beta)
 
   let deviance =
-    match family 
+    match family
     case #Logistic -> -2.0 * loglik
     case #Poisson  -> -2.0 * loglik
     case #Gaussian -> -2.0 * loglik
@@ -1305,7 +1353,7 @@ entry glm_summary_qr [m][n]
 
   let lr_p =
     1.0 - chi_square_cdf lr_stat lr_df
-                         
+
   -- covariance
   let W =
     match family
@@ -1350,73 +1398,62 @@ entry glm_summary_qr [m][n]
       iter,
       converged)
 
-
+-- Test logistic regression
+-- ==
+-- entry: logistic_regression_summary_qr
+-- input {
+--   [[1.0,0.0],
+--    [1.0,1.0],
+--    [1.0,2.0],
+--    [1.0,3.0],
+--    [1.0,4.0],
+--    [1.0,5.0]]
+--   [0.0,0.0,1.0,0.0,1.0,1.0]
+-- }
+-- output {
+--   [-3.0350689646285502,1.2140275858514205]
+--   [2.5457129997626664,0.9125855586603333]
+--   [-1.1922274682619391,1.3303164556248306]
+--   [0.23317234833267175,0.18341433068487256]
+--   -2.4779868350496126
+--   4.955973670099225
+--   8.317766166719343
+--   8.955973670099226
+--   0.40417011361429767
+--   3.361792496620118
+--   6.918071123711256e-2
+--   6i64
+--   true
+-- }
 entry logistic_regression_summary_qr [m][n]
   (X: [m][n]f64)
   (y: [m]f64)
-  : ([]f64, []f64, []f64, []f64, f64,
-     f64,
-     f64,
-     f64,
-     f64) =
+  : ([]f64, []f64, []f64, []f64,
+     f64, f64, f64, f64, f64,
+     f64, f64,
+     i64, bool) =
+  glm_summary_qr #Logistic X y
 
-  let (beta, p, loglik) =
-    logistic_regression_fit_qr X y
+-- glm_summary_qr #Logistic [[1.0,0.0], [1.0,1.0], [1.0,2.0], [1.0,3.0], [1.0,4.0], [1.0,5.0]] [0.0,0.0,1.0,0.0,1.0,1.0]
 
-  let rank = f64.i64 (length beta)
+entry poisson_regression_summary_qr [m][n]
+  (X: [m][n]f64)
+  (y: [m]f64)
+  : ([]f64, []f64, []f64, []f64,
+     f64, f64, f64, f64, f64,
+     f64, f64,
+     i64, bool) =
+  glm_summary_qr #Poisson X y
 
-  let deviance =
-    -2.0 * loglik
 
-  let ybar = mean y
-  let p_null =
-    replicate m ybar
-
-  let loglik_null =
-    logistic_loglik y p_null
-
-  let null_deviance =
-    -2.0 * loglik_null
-
-  let aic =
-    deviance + 2.0 * rank
-
-  let pseudo_r2 =
-    1.0 - (loglik / loglik_null)
-
-  let W =
-    map (\pi -> pi * (1.0 - pi)) p
-
-  let sqrtW =
-    map f64.sqrt W
-
-  let Xw =
-    tabulate m (\i ->
-                  tabulate n (\j ->
-                                X[i][j] * sqrtW[i]))
-
-  let Xt = transpose Xw
-  let XtX = linalg_f64.matmul Xt Xw
-  let XtX_inv = linalg_f64.inv XtX
-
-  let se =
-    linalg_f64.fromdiag XtX_inv
-    |> map f64.sqrt
-
-  let zvals =
-    map2 (/) beta se
-
-  let pvals =
-    map (\z ->
-           2.0 * (1.0 - student_t_cdf (f64.abs z) 1e6))
-        zvals
-
-  in (beta, se, zvals, pvals,
-      loglik,
-      deviance,
-      null_deviance,
-      aic,
-      pseudo_r2)
+entry gaussian_regression_summary_qr [m][n]
+  (X: [m][n]f64)
+  (y: [m]f64)
+  : ([]f64, []f64, []f64, []f64,
+     f64, f64, f64, f64, f64,
+     f64, f64,
+     i64, bool) =
+  glm_summary_qr #Gaussian X y
 
 -- logistic_regression_summary_qr [[1.0, 0.0], [1.0, 1.0], [1.0, 2.0], [1.0, 3.0], [1.0, 4.0]] [0.0, 0.0, 0.0, 1.0, 1.0]
 -- logistic_regression_summary_qr [[1.0, 0.0], [1.0, 1.0], [1.0, 2.0], [1.0, 3.0], [1.0, 4.0], [1.0, 5.0]] [0.0, 0.0, 1.0, 0.0, 1.0, 1.0]
@@ -1435,15 +1472,27 @@ def lag_matrix [N]
 
   let X =
     tabulate rows (\i ->
-      tabulate p (\j ->
-        y[i + p - j - 1]))
+                     tabulate p (\j ->
+                                   y[i + p - j - 1]))
 
   let y_trim =
     tabulate rows (\i ->
-      y[i + p])
+                     y[i + p])
 
   in (X, y_trim)
 
+
+-- Test AR(2)
+-- ==
+-- entry: ar_fit_qr
+-- input { [1.0,0.5,0.2,0.1,0.05,0.02,0.01] 2i64 }
+-- output {
+--   [0.0034316803578340895,
+--    0.05130962109156666,
+--    0.17200120424927934]
+--   3.518558341576706e-05
+--   -33.66643893385274
+-- }
 entry ar_fit_qr [N]
   (y: [N]f64)
   (p: i64)
@@ -1453,13 +1502,13 @@ entry ar_fit_qr [N]
 
   let X =
     tabulate rows (\i ->
-      [1.0] ++
-      tabulate p (\j ->
-        y[i + p - j - 1]))
+                     [1.0] ++
+                           tabulate p (\j ->
+                                         y[i + p - j - 1]))
 
   let y_trim =
     tabulate rows (\i ->
-      y[i + p])
+                     y[i + p])
 
   -- Direct QR solve (no summary wrapper)
   let (beta, _, _) =
@@ -1489,7 +1538,7 @@ entry ar_fit_qr [N]
 
   in (beta, sigma2_unbiased, aic)
 
-  
+
 entry ar_select_aic (y: []f64) (max_p: i64)
   : (f64, i64) =
   let results =
